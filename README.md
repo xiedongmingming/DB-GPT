@@ -29,6 +29,10 @@ Currently, we have released multiple key features, which are listed below to dem
 - Unified vector storage/indexing of knowledge base
   - Support for unstructured data such as PDF, Markdown, CSV, and WebURL
 
+- Milti LLMs Support
+  - Supports multiple large language models, currently supporting Vicuna (7b, 13b), ChatGLM-6b (int4, int8)
+  - TODO: codegen2, codet5p
+
 
 ## Demo
 
@@ -38,6 +42,11 @@ Run on an RTX 4090 GPU. [YouTube](https://www.youtube.com/watch?v=1PWI6F89LPo)
 
 <p align="center">
   <img src="./assets/demo_en.gif" width="600px" />
+</p>
+
+### Run Plugin
+<p align="center">
+  <img src="./assets/auto_sql_en.gif" width="600px" />
 </p>
 
 ### SQL Generation
@@ -102,6 +111,7 @@ As the knowledge base is currently the most significant user demand scenario, we
 1. Default built-in knowledge base
 2. Custom addition of knowledge bases
 3. Various usage scenarios such as constructing knowledge bases through plugin capabilities and web crawling. Users only need to organize the knowledge documents, and they can use our existing capabilities to build the knowledge base required for the large model.
+
 
 ### LLMs Management
 
@@ -172,12 +182,43 @@ $ python pilot/server/webserver.py
 Notice:  the webserver need to connect llmserver,  so you need change the .env file. change the MODEL_SERVER = "http://127.0.0.1:8000" to your address.  It's very important.
 
 ## Usage Instructions
+
 We provide a user interface for Gradio, which allows you to use DB-GPT through our user interface. Additionally, we have prepared several reference articles (written in Chinese) that introduce the code and principles related to our project.
 - [LLM Practical In Action Series (1) — Combined Langchain-Vicuna Application Practical](https://medium.com/@cfqcsunny/llm-practical-in-action-series-1-combined-langchain-vicuna-application-practical-701cd0413c9f)
 
+### Multi LLMs Usage
+
+To use multiple models, modify the LLM_MODEL parameter in the .env configuration file to switch between the models.
+
+### Create your own knowledge repository:
+
+1.Place personal knowledge files or folders in the pilot/datasets directory.
+
+2.Run the knowledge repository script in the tools directory.
+
+```bash
+& python tools/knowledge_init.py
+
+--vector_name : your vector store name  default_value:default
+--append: append mode, True:append, False: not append default_value:False
+
+```
+
+3.Add the knowledge repository in the interface by entering the name of your knowledge repository (if not specified, enter "default") so you can use it for Q&A based on your knowledge base. 
+
+Note that the default vector model used is text2vec-large-chinese (which is a large model, so if your personal computer configuration is not enough, it is recommended to use text2vec-base-chinese). Therefore, ensure that you download the model and place it in the models directory.
+
+If nltk-related errors occur during the use of the knowledge base, you need to install the nltk toolkit. For more details, please refer to: [nltk documents](https://www.nltk.org/data.html)
+Run the Python interpreter and type the commands:
+
+```bash
+>>> import nltk
+>>> nltk.download()
+```
+
 ## Acknowledgement
 
-The achievements of this project are thanks to the technical community, especially the following projects:
+This project is standing on the shoulders of giants and is not going to work without the open-source communities. Special thanks to the following projects for their excellent contribution to the AI industry:
 - [FastChat](https://github.com/lm-sys/FastChat) for providing chat services
 - [vicuna-13b](https://lmsys.org/blog/2023-03-30-vicuna/) as the base model
 - [langchain](https://langchain.readthedocs.io/) tool chain
@@ -187,6 +228,10 @@ The achievements of this project are thanks to the technical community, especial
 - [Milvus](https://milvus.io/) for distributed vector storage
 - [ChatGLM](https://github.com/THUDM/ChatGLM-6B) as the base model
 - [llama_index](https://github.com/jerryjliu/llama_index) for enhancing database-related knowledge using [in-context learning](https://arxiv.org/abs/2301.00234) based on existing knowledge bases.
+
+## Contribution
+
+- Please run `black .` before submitting the code.
 
 <!-- GITCONTRIBUTOR_START -->
 
@@ -205,4 +250,4 @@ This project follows the git-contributor [spec](https://github.com/xudafeng/git-
 The MIT License (MIT)
 
 ## Contact Information
-We are working on building a community, if you have any ideas about building the community, feel free to contact us. [Discord](https://discord.com/invite/twmZk3vv)
+We are working on building a community, if you have any ideas about building the community, feel free to contact us. [Discord](https://discord.gg/kMFf77FH)
