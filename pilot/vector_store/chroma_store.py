@@ -1,7 +1,6 @@
 import os
 
 from langchain.vectorstores import Chroma
-
 from pilot.configs.model_config import KNOWLEDGE_UPLOAD_ROOT_PATH
 from pilot.logs import logger
 from pilot.vector_store.vector_store_base import VectorStoreBase
@@ -23,6 +22,11 @@ class ChromaStore(VectorStoreBase):
     def similar_search(self, text, topk) -> None:
         logger.info("ChromaStore similar search")
         return self.vector_store_client.similarity_search(text, topk)
+
+    def vector_name_exists(self):
+        return (
+            os.path.exists(self.persist_dir) and len(os.listdir(self.persist_dir)) > 0
+        )
 
     def load_document(self, documents):
         logger.info("ChromaStore load document")

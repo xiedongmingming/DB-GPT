@@ -1,14 +1,34 @@
-# DB-GPT ![GitHub Repo stars](https://img.shields.io/github/stars/csunny/db-gpt?style=social)
+# DB-GPT: 用私有化LLM技术定义数据库下一代交互方式
+<div align="center">
+  <p>
+    <a href="https://github.com/csunny/DB-GPT">
+        <img alt="stars" src="https://img.shields.io/github/stars/csunny/db-gpt?style=social" />
+    </a>
+    <a href="https://github.com/csunny/DB-GPT">
+        <img alt="forks" src="https://img.shields.io/github/forks/csunny/db-gpt?style=social" />
+    </a>
+  </p>
 
-[English](README.zh.md)
+[**English**](README.md)|[**Discord**](https://discord.gg/ea6BnZkY) |[**Documents**](https://db-gpt.readthedocs.io/projects/db-gpt-docs-zh-cn/zh_CN/latest/)|[**微信**](https://github.com/csunny/DB-GPT/blob/main/README.zh.md#%E8%81%94%E7%B3%BB%E6%88%91%E4%BB%AC)
+</div>
 
-[![Star History Chart](https://api.star-history.com/svg?repos=csunny/DB-GPT)](https://star-history.com/#csunny/DB-GPT)
 
 ## DB-GPT 是什么？
+
 随着大模型的发布迭代，大模型变得越来越智能，在使用大模型的过程当中，遇到极大的数据安全与隐私挑战。在利用大模型能力的过程中我们的私密数据跟环境需要掌握自己的手里，完全可控，避免任何的数据隐私泄露以及安全风险。基于此，我们发起了DB-GPT项目，为所有以数据库为基础的场景，构建一套完整的私有大模型解决方案。 此方案因为支持本地部署，所以不仅仅可以应用于独立私有环境，而且还可以根据业务模块独立部署隔离，让大模型的能力绝对私有、安全、可控。
 
-DB-GPT 是一个开源的以数据库为基础的GPT实验项目，使用本地化的GPT大模型与您的数据和环境进行交互，无数据泄露风险，100% 私密，100% 安全。
+DB-GPT 是一个开源的以数据库为基础的GPT实验项目，使用本地化的GPT大模型与您的数据和环境进行交互，无数据泄露风险，100% 私密
 
+[DB-GPT视频介绍](https://www.bilibili.com/video/BV1SM4y1a7Nj/?buvid=551b023900b290f9497610b2155a2668&is_story_h5=false&mid=%2BVyE%2Fwau5woPcUKieCWS0A%3D%3D&p=1&plat_id=116&share_from=ugc&share_medium=iphone&share_plat=ios&share_session_id=5D08B533-82A4-4D40-9615-7826065B4574&share_source=GENERIC&share_tag=s_i&timestamp=1686307943&unique_k=bhO3lgQ&up_id=31375446)  
+
+## 最新发布
+- [2023/06/14]🔥 支持gpt4all模型，可以在M1/M2 或者CPU机器上运行。 [使用文档](https://db-gpt.readthedocs.io/projects/db-gpt-docs-zh-cn/zh_CN/latest/modules/llms.html)
+- [2023/06/01]🔥 在Vicuna-13B基础模型的基础上，通过插件实现任务链调用。例如单句创建数据库的实现.[演示](./assets/dbgpt_bytebase_plugin.gif)
+- [2023/06/01]🔥 QLoRA guanaco(原驼)支持, 支持4090运行33B
+- [2023/05/28]🔥根据URL进行对话 [演示](./assets/chat_url_zh.gif)
+- [2023/05/21] SQL生成与自动执行. [演示](./assets/auto_sql.gif)
+- [2023/05/15] 知识库对话 [演示](./assets/new_knownledge.gif)
+- [2023/05/06] SQL生成与诊断 [演示](./assets/演示.gif)
 
 ## 特性一览
 
@@ -27,65 +47,27 @@ DB-GPT 是一个开源的以数据库为基础的GPT实验项目，使用本地�
   - 非结构化数据支持包括PDF、MarkDown、CSV、WebURL
 
 - 多模型支持
-  - 支持多种大语言模型, 当前已支持Vicuna(7b,13b), ChatGLM-6b(int4, int8)
+  - 支持多种大语言模型, 当前已支持Vicuna(7b,13b), ChatGLM-6b(int4, int8), guanaco(7b,13b,33b), Gorilla(7b,13b)
   - TODO: codet5p, codegen2
 
 ## 效果演示
 
-示例通过 RTX 4090 GPU 演示，[YouTube 地址](https://www.youtube.com/watch?v=1PWI6F89LPo)
-### 运行环境演示
-
+示例通过 RTX 4090 GPU 演示
 <p align="center">
-  <img src="./assets/演示.gif" width="600px" />
+  <img src="./assets/演示.gif" width="680px" />
 </p>
 
-### SQL 插件化执行
 <p align="center">
-  <img src="./assets/auto_sql.gif" width="600px" />
+  <img src="./assets/auto_sql.gif" width="680px" />
 </p>
 
-### SQL 生成
-
-1. 生成建表语句
-
 <p align="center">
-   <img src="./assets/SQL_Gen_CreateTable.png" width="600px" />
+  <img src="./assets/chat_url_zh.gif" width="680px" />
 </p>
 
-2. 生成可运行SQL
-首先选择对应的数据库, 然后模型即可根据对应的数据库 Schema 信息生成 SQL, 运行成功的效果如下面的演示：
-
 <p align="center">
-  <img src="./assets/exeable.png" width="600px" />
+  <img src="./assets/new_knownledge.gif" width="680px" />
 </p>
-
-3. 自动分析执行SQL输出运行结果
-
-<p align="center">
-  <img src="./assets/Auto-DB-GPT.png" width="600px" />
-</p>
-
-### 数据库问答
-
-<p align="center">
-  <img src="./assets/DB_QA.png" width="600px" />
-</p>
-
-
-1. 基于默认内置知识库问答
-
-<p align="center">
-  <img src="./assets/VectorDBQA.png" width="600px" />
-</p>
-
-2. 自己新增知识库
-
-<p align="center">
-  <img src="./assets/new_knownledge.gif" width="600px" />
-</p>
-
-3. 从网络自己爬取数据学习
-- TODO
 
 ## 架构方案
 DB-GPT基于 [FastChat](https://github.com/lm-sys/FastChat) 构建大模型运行环境，并提供 vicuna 作为基础的大语言模型。此外，我们通过LangChain提供私域知识库问答能力。同时我们支持插件模式, 在设计上原生支持Auto-GPT插件。 
@@ -147,7 +129,7 @@ TODO: 在终端展示上，我们将提供多端产品界面。包括PC、手机
 
 本项目依赖一个本地的 MySQL 数据库服务，你需要本地安装，推荐直接使用 Docker 安装。
 ```
-docker run --name=mysql -p 3306:3306 -e MYSQL_ROOT_PASSWORD=aa12345678 -dit mysql:latest
+docker run --name=mysql -p 3306:3306 -e MYSQL_ROOT_PASSWORD=aa123456 -dit mysql:latest
 ```
 向量数据库我们默认使用的是Chroma内存数据库，所以无需特殊安装，如果有需要连接其他的同学，可以按照我们的教程进行安装配置。整个DB-GPT的安装过程，我们使用的是miniconda3的虚拟环境。创建虚拟环境，并安装python依赖包
 
@@ -188,11 +170,25 @@ $ python webserver.py
 ### 多模型使用
 在.env 配置文件当中, 修改LLM_MODEL参数来切换使用的模型。
 
+### 多语言用户界面模式
+在.env 配置文件当中，修改LANGUAGE参数来切换使用不同的语言，默认是英文(中文zh, 英文en, 其他语言待补充)
+
 ### 打造属于你的知识库：
 
 1.将个人知识文件或者文件夹放入pilot/datasets目录中
 
+当前支持的文档格式: txt, pdf, md, html, doc, ppt, and url.
+
+在操作之前先执行
+
+```
+python -m spacy download zh_core_web_sm
+
+```
+
 2.在.env文件指定你的向量数据库类型,VECTOR_STORE_TYPE(默认Chroma),目前支持Chroma,Milvus(需要设置MILVUS_URL和MILVUS_PORT)
+
+注意Milvus版本需要>2.1
 
 3.在tools目录执行知识入库脚本（）
 
@@ -240,24 +236,17 @@ Run the Python interpreter and type the commands:
 
 - 提交代码前请先执行 `black .`
 
-<!-- GITCONTRIBUTOR_START -->
-
-## 贡献者
-
-|[<img src="https://avatars.githubusercontent.com/u/17919400?v=4" width="100px;"/><br/><sub><b>csunny</b></sub>](https://github.com/csunny)<br/>|[<img src="https://avatars.githubusercontent.com/u/1011681?v=4" width="100px;"/><br/><sub><b>xudafeng</b></sub>](https://github.com/xudafeng)<br/>|[<img src="https://avatars.githubusercontent.com/u/7636723?s=96&v=4" width="100px;"/><br/><sub><b>明天</b></sub>](https://github.com/yhjun1026)<br/> | [<img src="https://avatars.githubusercontent.com/u/13723926?v=4" width="100px;"/><br/><sub><b>Aries-ckt</b></sub>](https://github.com/Aries-ckt)<br/>|[<img src="https://avatars.githubusercontent.com/u/95130644?v=4" width="100px;"/><br/><sub><b>thebigbone</b></sub>](https://github.com/thebigbone)<br/>|
-| :---: | :---: | :---: | :---: |:---: |
-
-
-[git-contributor 说明](https://github.com/xudafeng/git-contributor)，自动生成时间：`Fri May 19 2023 00:24:18 GMT+0800`。
-
-<!-- GITCONTRIBUTOR_END -->
-
 这是一个用于数据库的复杂且创新的工具, 我们的项目也在紧急的开发当中, 会陆续发布一些新的feature。如在使用当中有任何具体问题, 优先在项目下提issue, 如有需要, 请联系如下微信，我会尽力提供帮助，同时也非常欢迎大家参与到项目建设中。
 
-<p align="center">
-  <img src="./assets/DB_GPT_wechat.png" width="320px" />
-</p>
+## 联系我们
+微信群已超扫码加群上限, 进群请添加如下微信帮拉进群。
 
+--------------
+|xy643854343|mingtian2635|chenB305|cfq1612784863|
+|-----------|----------|-----------|---------------|
 ## Licence
 
 The MIT License (MIT)
+
+[![Star History Chart](https://api.star-history.com/svg?repos=csunny/DB-GPT)](https://star-history.com/#csunny/DB-GPT)
+

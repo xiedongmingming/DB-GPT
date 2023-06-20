@@ -4,29 +4,34 @@ from typing import List
 
 from langchain.document_loaders import PyPDFLoader
 from langchain.schema import Document
+from langchain.text_splitter import SpacyTextSplitter
 
-from pilot.configs.model_config import KNOWLEDGE_CHUNK_SPLIT_SIZE
+from pilot.configs.config import Config
 from pilot.source_embedding import SourceEmbedding, register
-from pilot.source_embedding.chn_document_splitter import CHNDocumentSplitter
+
+CFG = Config()
 
 
 class PDFEmbedding(SourceEmbedding):
-    """yuque embedding for read yuque document."""
+    """pdf embedding for read pdf document."""
 
-    def __init__(self, file_path, model_name, vector_store_config):
+    def __init__(self, file_path, vector_store_config):
         """Initialize with pdf path."""
-        super().__init__(file_path, model_name, vector_store_config)
+        super().__init__(file_path, vector_store_config)
         self.file_path = file_path
-        self.model_name = model_name
         self.vector_store_config = vector_store_config
 
     @register
     def read(self):
         """Load from pdf path."""
-        # loader = UnstructuredPaddlePDFLoader(self.file_path)
         loader = PyPDFLoader(self.file_path)
-        textsplitter = CHNDocumentSplitter(
-            pdf=True, sentence_size=KNOWLEDGE_CHUNK_SPLIT_SIZE
+        # textsplitter = CHNDocumentSplitter(
+        #     pdf=True, sentence_size=CFG.KNOWLEDGE_CHUNK_SIZE
+        # )
+        textsplitter = SpacyTextSplitter(
+            pipeline="zh_core_web_sm",
+            chunk_size=CFG.KNOWLEDGE_CHUNK_SIZE,
+            chunk_overlap=100,
         )
         return loader.load_and_split(textsplitter)
 

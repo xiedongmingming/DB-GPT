@@ -73,12 +73,12 @@ class ModelLoader(metaclass=Singleton):
 
         elif self.device == "cuda":
             kwargs = {"torch_dtype": torch.float16}
-            num_gpus = int(num_gpus)
+            num_gpus = torch.cuda.device_count()
 
             if num_gpus != 1:
                 kwargs["device_map"] = "auto"
-                if max_gpu_memory is None:
-                    kwargs["device_map"] = "sequential"
+                # if max_gpu_memory is None:
+                #     kwargs["device_map"] = "sequential"
 
                 available_gpu_memory = get_gpu_memory(num_gpus)
                 kwargs["max_memory"] = {
@@ -100,7 +100,7 @@ class ModelLoader(metaclass=Singleton):
         llm_adapter = get_llm_model_adapter(self.model_path)
         model, tokenizer = llm_adapter.loader(self.model_path, kwargs)
 
-        if load_8bit:
+        if load_8bit and tokenizer:
             if num_gpus != 1:
                 warnings.warn(
                     "8-bit quantization is not supported for multi-gpu inference"
@@ -109,9 +109,17 @@ class ModelLoader(metaclass=Singleton):
                 compress_module(model, self.device)
 
         if (
-            self.device == "cuda" and num_gpus == 1 and not cpu_offloading
-        ) or self.device == "mps":
-            model.to(self.device)
+            (self.device == "cuda" and num_gpus == 1 and not cpu_offloading)
+            or self.device == "mps"
+            and tokenizer
+        ):
+            # 4-bit not support this
+            try:
+                model.to(self.device)
+            except ValueError:
+                pass
+            except AttributeError:
+                pass
 
         if debug:
             print(model)

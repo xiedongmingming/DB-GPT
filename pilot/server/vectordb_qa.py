@@ -3,11 +3,13 @@
 
 from langchain.prompts import PromptTemplate
 
-from pilot.configs.model_config import VECTOR_SEARCH_TOP_K
-from pilot.conversation import conv_qa_prompt_template
+from pilot.configs.config import Config
+from pilot.conversation import conv_qa_prompt_template, conv_db_summary_templates
 from pilot.logs import logger
-from pilot.model.vicuna_llm import VicunaLLM
+from pilot.model.llm_out.vicuna_llm import VicunaLLM
 from pilot.vector_store.file_loader import KnownLedge2Vector
+
+CFG = Config()
 
 
 class KnownLedgeBaseQA:
@@ -22,7 +24,7 @@ class KnownLedgeBaseQA:
         )
 
         retriever = self.vector_store.as_retriever(
-            search_kwargs={"k": VECTOR_SEARCH_TOP_K}
+            search_kwargs={"k": CFG.KNOWLEDGE_SEARCH_TOP_SIZE}
         )
         docs = retriever.get_relevant_documents(query=query)
 
@@ -52,4 +54,18 @@ class KnownLedgeBaseQA:
             prompt = state.get_prompt()
             print("new prompt length:" + str(len(prompt)))
 
+        return prompt
+
+    @staticmethod
+    def build_db_summary_prompt(query, db_profile_summary, state):
+        prompt_template = PromptTemplate(
+            template=conv_db_summary_templates,
+            input_variables=["db_input", "db_profile_summary"],
+        )
+        # context = [d.page_content for d in docs]
+        result = prompt_template.format(
+            db_profile_summary=db_profile_summary, db_input=query
+        )
+        state.messages[-2][1] = result
+        prompt = state.get_prompt()
         return prompt

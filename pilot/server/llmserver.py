@@ -5,6 +5,7 @@ import asyncio
 import json
 import os
 import sys
+import traceback
 
 import uvicorn
 from fastapi import BackgroundTasks, FastAPI, Request
@@ -19,7 +20,7 @@ sys.path.append(ROOT_PATH)
 
 from pilot.configs.config import Config
 from pilot.configs.model_config import *
-from pilot.model.inference import generate_output, generate_stream, get_embeddings
+from pilot.model.llm_out.vicuna_base_llm import get_embeddings
 from pilot.model.loader import ModelLoader
 from pilot.server.chat_adapter import get_llm_chat_adapter
 
@@ -38,10 +39,15 @@ class ModelWorker:
             num_gpus, load_8bit=ISLOAD_8BIT, debug=ISDEBUG
         )
 
-        if hasattr(self.model.config, "max_sequence_length"):
-            self.context_len = self.model.config.max_sequence_length
-        elif hasattr(self.model.config, "max_position_embeddings"):
-            self.context_len = self.model.config.max_position_embeddings
+        if not isinstance(self.model, str):
+            if hasattr(self.model, "config") and hasattr(
+                self.model.config, "max_sequence_length"
+            ):
+                self.context_len = self.model.config.max_sequence_length
+            elif hasattr(self.model, "config") and hasattr(
+                self.model.config, "max_position_embeddings"
+            ):
+                self.context_len = self.model.config.max_position_embeddings
 
         else:
             self.context_len = 2048
@@ -68,7 +74,12 @@ class ModelWorker:
             for output in self.generate_stream_func(
                 self.model, self.tokenizer, params, DEVICE, CFG.MAX_POSITION_EMBEDDINGS
             ):
-                print("output: ", output)
+                # Please do not open the output in production!
+                # The gpt4all thread shares stdout with the parent process,
+                # and opening it may affect the frontend output
+                if not ("gptj" in CFG.LLM_MODEL or "guanaco" in CFG.LLM_MODEL):
+                    print("output: ", output)
+
                 ret = {
                     "text": output,
                     "error_code": 0,
@@ -78,10 +89,24 @@ class ModelWorker:
         except torch.cuda.CudaError:
             ret = {"text": "**GPU OutOfMemory, Please Refresh.**", "error_code": 0}
             yield json.dumps(ret).encode() + b"\0"
+        except Exception as e:
+            msg = "{}: {}".format(str(e), traceback.format_exc())
+
+            ret = {
+                "text": f"**LLMServer Generate Error, Please CheckErrorInfo.**: {msg}",
+                "error_code": 0,
+            }
+
+            yield json.dumps(ret).encode() + b"\0"
 
     def get_embeddings(self, prompt):
         return get_embeddings(self.model, self.tokenizer, prompt)
 
+
+model_path = LLM_MODEL_CONFIG[CFG.LLM_MODEL]
+worker = ModelWorker(
+    model_path=model_path, model_name=CFG.LLM_MODEL, device=DEVICE, num_gpus=1
+)
 
 app = FastAPI()
 
@@ -156,11 +181,4 @@ def embeddings(prompt_request: EmbeddingRequest):
 
 
 if __name__ == "__main__":
-    model_path = LLM_MODEL_CONFIG[CFG.LLM_MODEL]
-    print(model_path, DEVICE)
-
-    worker = ModelWorker(
-        model_path=model_path, model_name=CFG.LLM_MODEL, device=DEVICE, num_gpus=1
-    )
-
     uvicorn.run(app, host="0.0.0.0", port=CFG.MODEL_PORT, log_level="info")
