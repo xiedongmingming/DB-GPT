@@ -191,6 +191,7 @@ class DBSummaryClient:
             docs.extend(embedding.read_batch())
 
             for table_summary in db_summary_client.table_info_json():
+                #
                 embedding = StringEmbedding(
                     table_summary,
                     profile_store_config,
@@ -204,6 +205,7 @@ class DBSummaryClient:
 
 
 def _get_llm_response(query, db_input, dbsummary):
+    #
     chat_param = {
         "temperature": 0.7,
         "max_new_tokens": 512,

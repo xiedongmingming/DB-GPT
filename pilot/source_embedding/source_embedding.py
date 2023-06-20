@@ -17,18 +17,21 @@ def register(method):
 
 
 class SourceEmbedding(ABC):
-    """base class for read data source embedding pipeline.
+    """
+    base class for read data source embedding pipeline.
     include data read, data process, data split, data to vector, data index vector store
     Implementations should implement the  method
     """
 
     def __init__(
-        self,
-        file_path,
-        vector_store_config,
-        embedding_args: Optional[Dict] = None,
+            self,
+            file_path,
+            vector_store_config,
+            embedding_args: Optional[Dict] = None,
     ):
-        """Initialize with Loader url, model_name, vector_store_config"""
+        """
+        Initialize with Loader url, model_name, vector_store_config
+        """
         self.file_path = file_path
         self.vector_store_config = vector_store_config
         self.embedding_args = embedding_args
@@ -40,40 +43,55 @@ class SourceEmbedding(ABC):
     @abstractmethod
     @register
     def read(self) -> List[ABC]:
-        """read datasource into document objects."""
+        """
+        read datasource into document objects.
+        """
 
     @register
     def data_process(self, text):
-        """pre process data."""
+        """
+        pre process data.
+        """
 
     @register
     def text_split(self, text):
-        """text split chunk"""
+        """
+        text split chunk
+        """
         pass
 
     @register
     def text_to_vector(self, docs):
-        """transform vector"""
+        """
+        transform vector
+        """
         pass
 
     @register
     def index_to_store(self, docs):
-        """index to vector store"""
+        """
+        index to vector store
+        """
         self.vector_client.load_document(docs)
 
     @register
     def similar_search(self, doc, topk):
-        """vector store similarity_search"""
+        """
+        vector store similarity_search
+        """
         try:
             ans = self.vector_client.similar_search(doc, topk)
         except NotEnoughElementsException:
             ans = self.vector_client.similar_search(doc, 1)
+
         return ans
 
     def vector_name_exist(self):
+        #
         return self.vector_client.vector_name_exists()
 
     def source_embedding(self):
+        #
         if "read" in registered_methods:
             text = self.read()
         if "data_process" in registered_methods:

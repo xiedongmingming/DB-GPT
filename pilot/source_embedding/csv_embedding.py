@@ -10,10 +10,10 @@ class CSVEmbedding(SourceEmbedding):
     """csv embedding for read csv document."""
 
     def __init__(
-        self,
-        file_path,
-        vector_store_config,
-        embedding_args: Optional[Dict] = None,
+            self,
+            file_path,
+            vector_store_config,
+            embedding_args: Optional[Dict] = None,
     ):
         """Initialize with csv path."""
         super().__init__(file_path, vector_store_config)

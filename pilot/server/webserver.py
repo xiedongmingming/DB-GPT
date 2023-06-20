@@ -67,7 +67,7 @@ enable_moderation = False
 
 models = []
 
-dbs = []
+dbs = []  # 加载到的所有数据库
 
 vs_list = [get_lang_text("create_knowledge_base")] + get_vector_storelist()
 
@@ -75,7 +75,7 @@ autogpt = False
 
 vector_store_client = None
 
-vector_store_name = {"vs_name": ""}
+vector_store_name = {"vs_name": ""}  # 添加的知识库名称
 
 # db_summary = {"dbsummary": ""}
 
@@ -90,24 +90,28 @@ DB_SETTINGS = {
     "port": CFG.LOCAL_DB_PORT,
 }
 
-llm_native_dialogue = get_lang_text("knowledge_qa_type_llm_native_dialogue")
+##########################################################################################
+llm_native_dialogue = get_lang_text("knowledge_qa_type_llm_native_dialogue")  # LLM原生对话
 
-default_knowledge_base_dialogue = get_lang_text(
+default_knowledge_base_dialogue = get_lang_text(  # 默认知识库对话
     "knowledge_qa_type_default_knowledge_base_dialogue"
 )
 
-add_knowledge_base_dialogue = get_lang_text(
+add_knowledge_base_dialogue = get_lang_text(  # 新增知识库对话
     "knowledge_qa_type_add_knowledge_base_dialogue"
 )
 
-url_knowledge_dialogue = get_lang_text("knowledge_qa_type_url_knowledge_dialogue")
+url_knowledge_dialogue = get_lang_text("knowledge_qa_type_url_knowledge_dialogue")  # URL网页知识库对话
 
 knowledge_qa_type_list = [
     llm_native_dialogue,
     default_knowledge_base_dialogue,
     add_knowledge_base_dialogue,
+    # ???
 ]
 
+
+##########################################################################################
 
 def get_simlar(q):
     #
@@ -218,6 +222,7 @@ def clear_history(request: gr.Request):
 
 
 def add_text(state, text, request: gr.Request):
+    #
     logger.info(f"add_text. ip: {request.client.host}. len: {len(text)}")
 
     if len(text) <= 0:
@@ -314,7 +319,7 @@ def http_bot(
 ):
     #
     logger.info(
-        f"User message send!{state.conv_id},{selected},{plugin_selector},{mode},{sql_mode},{db_selector},{url_input}"
+        f"User message send!{state.conv_id}, {selected}, {plugin_selector}, {mode}, {sql_mode}, {db_selector}, {url_input}"
     )
 
     if chat_mode_title["sql_generate_diagnostics"] == selected:
@@ -464,7 +469,7 @@ def change_sql_mode(sql_mode):
         return gr.update(visible=False)
 
 
-def change_mode(mode):
+def change_mode(mode):  # 知识问答模式切换--新增知识库对话时才显示
     #
     if mode in [add_knowledge_base_dialogue]:
         return gr.update(visible=True)
@@ -478,11 +483,11 @@ def build_single_model_ui():
 
     learn_more_markdown = get_lang_text("learn_more_markdown")
 
-    state = gr.State()
+    state = gr.State()  # 聊天历史
 
-    gr.Markdown(notice_markdown, elem_id="notice_markdown")
+    gr.Markdown(notice_markdown, elem_id="notice_markdown")  # 第一段话
 
-    with gr.Accordion(
+    with gr.Accordion(  # 模型参数：2个
             get_lang_text("model_control_param"), open=False, visible=False
     ) as parameter_row:
 
@@ -518,28 +523,28 @@ def build_single_model_ui():
 
     with tabs:
 
-        tab_qa = gr.TabItem(get_lang_text("knowledge_qa"), elem_id="QA")
+        tab_qa = gr.TabItem(get_lang_text("knowledge_qa"), elem_id="QA")  # 知识问答
 
         with tab_qa:
 
-            mode = gr.Radio(
+            mode = gr.Radio(  # 四种模式
                 [
-                    llm_native_dialogue,
-                    default_knowledge_base_dialogue,
-                    add_knowledge_base_dialogue,
-                    url_knowledge_dialogue,
+                    llm_native_dialogue,  # LLM原生对话
+                    default_knowledge_base_dialogue,  # 默认知识库对话
+                    add_knowledge_base_dialogue,  # 新增知识库对话
+                    url_knowledge_dialogue,  # URL网页知识库对话
                 ],
                 show_label=False,
                 value=llm_native_dialogue,
             )
 
-            vs_setting = gr.Accordion(
+            vs_setting = gr.Accordion(  # 配置知识库--新增知识库对话
                 get_lang_text("configure_knowledge_base"), open=False, visible=False
             )
 
             mode.change(fn=change_mode, inputs=mode, outputs=vs_setting)
 
-            url_input = gr.Textbox(
+            url_input = gr.Textbox(  # 输入网页地址--URL网页知识对话
                 label=get_lang_text("url_input_label"),
                 lines=1,
                 interactive=True,
@@ -557,17 +562,17 @@ def build_single_model_ui():
 
             with vs_setting:
 
-                vs_name = gr.Textbox(
+                vs_name = gr.Textbox(  # 新知识库名称
                     label=get_lang_text("new_klg_name"), lines=1, interactive=True
                 )
 
-                vs_add = gr.Button(get_lang_text("add_as_new_klg"))
+                vs_add = gr.Button(get_lang_text("add_as_new_klg"))  # 添加为新知识库
 
                 with gr.Column() as doc2vec:
                     #
-                    gr.Markdown(get_lang_text("add_file_to_klg"))
+                    gr.Markdown(get_lang_text("add_file_to_klg"))  # 向知识库中添加文件
 
-                    with gr.Tab(get_lang_text("upload_file")):
+                    with gr.Tab(get_lang_text("upload_file")):  # 上传文件
                         #
                         files = gr.File(
                             label=get_lang_text("add_file"),
@@ -581,7 +586,7 @@ def build_single_model_ui():
                             get_lang_text("upload_and_load_to_klg")
                         )
 
-                    with gr.Tab(get_lang_text("upload_folder")):
+                    with gr.Tab(get_lang_text("upload_folder")):  # 上传文件夹
                         #
                         folder_files = gr.File(
                             label=get_lang_text("add_folder"),
@@ -594,7 +599,7 @@ def build_single_model_ui():
                             get_lang_text("upload_and_load_to_klg")
                         )
 
-        tab_sql = gr.TabItem(get_lang_text("sql_generate_diagnostics"), elem_id="SQL")
+        tab_sql = gr.TabItem(get_lang_text("sql_generate_diagnostics"), elem_id="SQL")  # SQL生成与诊断
 
         with tab_sql:
             #
@@ -602,7 +607,7 @@ def build_single_model_ui():
             #
             with gr.Row(elem_id="db_selector"):
                 #
-                db_selector = gr.Dropdown(
+                db_selector = gr.Dropdown(  # 请选择数据
                     label=get_lang_text("please_choose_database"),
                     choices=dbs,
                     value=dbs[0] if len(models) > 0 else "",
@@ -614,18 +619,18 @@ def build_single_model_ui():
 
             sql_mode = gr.Radio(
                 [
-                    get_lang_text("sql_generate_mode_direct"),
-                    get_lang_text("sql_generate_mode_none"),
+                    get_lang_text("sql_generate_mode_direct"),  # 直接执行结果
+                    get_lang_text("sql_generate_mode_none"),  # DB问答
                 ],
                 show_label=False,
                 value=get_lang_text("sql_generate_mode_none"),
             )
 
-            sql_vs_setting = gr.Markdown(get_lang_text("sql_vs_setting"))
+            sql_vs_setting = gr.Markdown(get_lang_text("sql_vs_setting"))  # 直接执行结果的提示信息
 
             sql_mode.change(fn=change_sql_mode, inputs=sql_mode, outputs=sql_vs_setting)
 
-        tab_plugin = gr.TabItem(get_lang_text("chat_use_plugin"), elem_id="PLUGIN")
+        tab_plugin = gr.TabItem(get_lang_text("chat_use_plugin"), elem_id="PLUGIN")  # 插件模式
         #
         # tab_plugin.select(change_func)
         #
@@ -637,7 +642,7 @@ def build_single_model_ui():
                 #
                 # TODO
                 #
-                plugin_selector = gr.Dropdown(
+                plugin_selector = gr.Dropdown(  # 选择插件
                     label=get_lang_text("select_plugin"),
                     choices=list(plugins_select_info().keys()),
                     value="",
@@ -657,7 +662,7 @@ def build_single_model_ui():
                     return plugins_select_info().get(evt.value)
 
                 plugin_selected = gr.Textbox(
-                    show_label=False, visible=False, placeholder="Selected"
+                    show_label=False, visible=False, placeholder="Selected"  # 增加一个选择标识
                 )
 
                 plugin_selector.select(plugin_change, None, plugin_selected)
@@ -668,7 +673,7 @@ def build_single_model_ui():
 
         with gr.Row():
             #
-            with gr.Column(scale=20):
+            with gr.Column(scale=20):  # 输入框
                 #
                 textbox = gr.Textbox(
                     show_label=False,
@@ -676,29 +681,32 @@ def build_single_model_ui():
                     visible=False,
                 ).style(container=False)
 
-            with gr.Column(scale=2, min_width=50):
+            with gr.Column(scale=2, min_width=50):  # 发送按钮
                 #
                 send_btn = gr.Button(value=get_lang_text("send"), visible=False)
 
     with gr.Row(visible=False) as button_row:
 
-        regenerate_btn = gr.Button(value=get_lang_text("regenerate"), interactive=False)
+        regenerate_btn = gr.Button(value=get_lang_text("regenerate"), interactive=False)  # 重新生成
 
-        clear_btn = gr.Button(value=get_lang_text("clear_box"), interactive=False)
+        clear_btn = gr.Button(value=get_lang_text("clear_box"), interactive=False)  # 清理
 
-    gr.Markdown(learn_more_markdown)
+    gr.Markdown(learn_more_markdown)  # 标识语
 
+    ############################################################################################
+    # 收集到的所有参数
     params = [plugin_selected, mode, sql_mode, db_selector, url_input, vs_name]
 
     btn_list = [regenerate_btn, clear_btn]
 
-    regenerate_btn.click(regenerate, state, [state, chatbot, textbox] + btn_list).then(
+    ###############################################################################################
+    regenerate_btn.click(regenerate, state, [state, chatbot, textbox] + btn_list).then(  # 重新生成按钮
         http_bot,
         [state, selected, temperature, max_output_tokens] + params,
         [state, chatbot] + btn_list,
     )
 
-    clear_btn.click(clear_history, None, [state, chatbot, textbox] + btn_list)
+    clear_btn.click(clear_history, None, [state, chatbot, textbox] + btn_list)  # 清理按钮
 
     textbox.submit(
         add_text, [state, textbox], [state, chatbot, textbox] + btn_list
@@ -740,7 +748,7 @@ def build_single_model_ui():
 def build_webdemo():
     #
     with gr.Blocks(
-            title=get_lang_text("database_smart_assistant"),
+            title=get_lang_text("database_smart_assistant"),  # HTML标题
             # theme=gr.themes.Base(),
             theme=gr.themes.Default(),
             css=block_css,
@@ -759,7 +767,7 @@ def build_webdemo():
 
         if args.model_list_mode == "once":
 
-            demo.load(
+            demo.load(  # TODO？？？？
                 load_demo,
                 [url_params],
                 [
@@ -823,9 +831,11 @@ def async_db_summery():
     #
     client = DBSummaryClient()
 
-    thread = threading.Thread(target=client.init_db_summary)
+    # thread = threading.Thread(target=client.init_db_summary)
+    #
+    # thread.start()
 
-    thread.start()
+    client.init_db_summary()
 
 
 def signal_handler(sig, frame):

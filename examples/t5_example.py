@@ -16,7 +16,9 @@ from transformers import pipeline
 
 
 class FlanLLM(LLM):
+    #
     model_name = "google/flan-t5-large"
+
     pipeline = pipeline(
         "text2text-generation",
         model=model_name,
@@ -25,17 +27,22 @@ class FlanLLM(LLM):
     )
 
     def _call(self, prompt, stop=None):
+        #
         return self.pipeline(prompt, max_length=9999)[0]["generated_text"]
 
     def _identifying_params(self):
+        #
         return {"name_of_model": self.model_name}
 
     def _llm_type(self):
+        #
         return "custome"
 
 
 llm_predictor = LLMPredictor(llm=FlanLLM())
+
 hfemb = HuggingFaceEmbeddings()
+
 embed_model = LangchainEmbedding(hfemb)
 
 text1 = """
@@ -229,12 +236,14 @@ anti/semi只是因为not exists/exist的语义只是返回左表数据，改成a
 from llama_index import Document
 
 text_list = [text1]
+
 documents = [Document(t) for t in text_list]
 
 num_output = 250
 max_input_size = 512
 
 max_chunk_overlap = 20
+
 prompt_helper = PromptHelper(max_input_size, num_output, max_chunk_overlap)
 
 index = GPTListIndex(
@@ -243,15 +252,19 @@ index = GPTListIndex(
     llm_predictor=llm_predictor,
     prompt_helper=prompt_helper,
 )
+
 index.save_to_disk("index.json")
 
-
 if __name__ == "__main__":
+    #
     import logging
 
     logging.getLogger().setLevel(logging.CRITICAL)
+
     for d in documents:
+        #
         print(d)
 
     response = index.query("数据库的执行计划命令有多少?")
+
     print(response)

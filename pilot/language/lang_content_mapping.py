@@ -79,4 +79,5 @@ lang_dicts = {
 
 
 def get_lang_content(key, language="zh"):
+    #
     return lang_dicts.get(language, {}).get(key, "")

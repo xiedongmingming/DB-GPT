@@ -5,4 +5,5 @@ CFG = Config()
 
 
 def get_lang_text(key):
+    #
     return get_lang_content(key, CFG.LANGUAGE)

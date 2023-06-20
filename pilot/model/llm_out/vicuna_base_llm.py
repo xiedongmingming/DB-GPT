@@ -6,7 +6,7 @@ import torch
 
 @torch.inference_mode()
 def generate_stream(
-    model, tokenizer, params, device, context_len=4096, stream_interval=2
+        model, tokenizer, params, device, context_len=4096, stream_interval=2
 ):
     """Fork from fastchat: https://github.com/lm-sys/FastChat/blob/main/fastchat/serve/inference.py"""
     prompt = params["prompt"]
@@ -74,7 +74,7 @@ def generate_stream(
 
 @torch.inference_mode()
 def generate_output(
-    model, tokenizer, params, device, context_len=4096, stream_interval=2
+        model, tokenizer, params, device, context_len=4096, stream_interval=2
 ):
     """Fork from fastchat: https://github.com/lm-sys/FastChat/blob/main/fastchat/serve/inference.py"""
 
@@ -142,7 +142,7 @@ def generate_output(
 
 @torch.inference_mode()
 def generate_output_ex(
-    model, tokenizer, params, device, context_len=2048, stream_interval=2
+        model, tokenizer, params, device, context_len=2048, stream_interval=2
 ):
     prompt = params["prompt"]
     temperature = float(params.get("temperature", 1.0))
@@ -224,10 +224,15 @@ def generate_output_ex(
 
 @torch.inference_mode()
 def get_embeddings(model, tokenizer, prompt):
+    #
     input_ids = tokenizer(prompt).input_ids
+
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
     input_embeddings = model.get_input_embeddings().to(device)
 
     embeddings = input_embeddings(torch.LongTensor([input_ids]).to(device))
+
     mean = torch.mean(embeddings[0], 0).cpu().detach()
+
     return mean.to(device)

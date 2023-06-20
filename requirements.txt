@@ -12,7 +12,8 @@ cycler==0.11.0
 filelock==3.9.0
 fonttools==4.38.0
 frozenlist==1.3.3
-huggingface-hub==0.13.4
+# huggingface-hub==0.13.4
+huggingface-hub
 importlib-resources==5.12.0
 
 sqlparse==0.4.4

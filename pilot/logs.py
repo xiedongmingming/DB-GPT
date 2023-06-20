@@ -3,7 +3,9 @@ import os
 import random
 import re
 import time
+
 from logging import LogRecord
+
 from typing import Any
 
 from colorama import Fore, Style
