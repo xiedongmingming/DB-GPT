@@ -12,10 +12,14 @@ from pilot.common.sql_database import Database
 
 
 class Config(metaclass=Singleton):
-    """Configuration class to store the state of bools for different scripts access"""
+    """
+    Configuration class to store the state of bools for different scripts access
+    """
 
     def __init__(self) -> None:
-        """Initialize the Config class"""
+        """
+        Initialize the Config class
+        """
 
         # Gradio language version: en, zh
         self.LANGUAGE = os.getenv("LANGUAGE", "en")
@@ -26,7 +30,7 @@ class Config(metaclass=Singleton):
         self.temperature = float(os.getenv("TEMPERATURE", 0.7))
 
         self.execute_local_commands = (
-            os.getenv("EXECUTE_LOCAL_COMMANDS", "False") == "True"
+                os.getenv("EXECUTE_LOCAL_COMMANDS", "False") == "True"
         )
         # User agent header to use when making HTTP requests
         # Some websites might just completely deny request with an error code if
@@ -76,14 +80,16 @@ class Config(metaclass=Singleton):
         self.command_registry = []
 
         disabled_command_categories = os.getenv("DISABLED_COMMAND_CATEGORIES")
+
         if disabled_command_categories:
             self.disabled_command_categories = disabled_command_categories.split(",")
         else:
             self.disabled_command_categories = []
 
         self.execute_local_commands = (
-            os.getenv("EXECUTE_LOCAL_COMMANDS", "False") == "True"
+                os.getenv("EXECUTE_LOCAL_COMMANDS", "False") == "True"
         )
+
         ### message stor file
         self.message_dir = os.getenv("MESSAGE_HISTORY_DIR", "../../message")
 
@@ -95,22 +101,26 @@ class Config(metaclass=Singleton):
         self.plugins_git_branch = os.getenv("PLUGINS_GIT_BRANCH", "plugin_dashboard")
 
         plugins_allowlist = os.getenv("ALLOWLISTED_PLUGINS")
+
         if plugins_allowlist:
             self.plugins_allowlist = plugins_allowlist.split(",")
         else:
             self.plugins_allowlist = []
 
         plugins_denylist = os.getenv("DENYLISTED_PLUGINS")
+
         if plugins_denylist:
             self.plugins_denylist = plugins_denylist.split(",")
         else:
             self.plugins_denylist = []
+
         ### Native SQL Execution Capability Control Configuration
         self.NATIVE_SQL_CAN_RUN_DDL = (
-            os.getenv("NATIVE_SQL_CAN_RUN_DDL", "True") == "True"
+                os.getenv("NATIVE_SQL_CAN_RUN_DDL", "True") == "True"
         )
+
         self.NATIVE_SQL_CAN_RUN_WRITE = (
-            os.getenv("NATIVE_SQL_CAN_RUN_WRITE", "True") == "True"
+                os.getenv("NATIVE_SQL_CAN_RUN_WRITE", "True") == "True"
         )
 
         ### Local database connection configuration
@@ -159,6 +169,7 @@ class Config(metaclass=Singleton):
         self.EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "text2vec")
         self.KNOWLEDGE_CHUNK_SIZE = int(os.getenv("KNOWLEDGE_CHUNK_SIZE", 100))
         self.KNOWLEDGE_SEARCH_TOP_SIZE = int(os.getenv("KNOWLEDGE_SEARCH_TOP_SIZE", 5))
+
         ### SUMMARY_CONFIG Configuration
         self.SUMMARY_CONFIG = os.getenv("SUMMARY_CONFIG", "FAST")
 

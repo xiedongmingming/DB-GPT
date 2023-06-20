@@ -5,6 +5,7 @@ from pilot.summary.db_summary import DBSummary, TableSummary, FieldSummary, Inde
 
 CFG = Config()
 
+
 # {
 #     "database_name": "mydatabase",
 #     "tables": [
@@ -45,9 +46,12 @@ CFG = Config()
 
 
 class MysqlSummary(DBSummary):
-    """Get mysql summary template."""
+    """
+    Get mysql summary template.
+    """
 
     def __init__(self, name):
+
         self.name = name
         self.type = "MYSQL"
         self.summery = """{{"database_name": "{name}", "type": "{type}", "tables": "{tables}", "qps": "{qps}", "tps": {tps}}}"""
@@ -65,50 +69,70 @@ class MysqlSummary(DBSummary):
             charset=self.db.get_charset(),
             collation=self.db.get_collation(),
         )
+
         tables = self.db.get_table_names()
+
         self.table_comments = self.db.get_table_comments(name)
+
         comment_map = {}
+
         for table_comment in self.table_comments:
+            #
             self.tables_info.append(
                 "table name:{table_name},table description:{table_comment}".format(
                     table_name=table_comment[0], table_comment=table_comment[1]
                 )
             )
+
             comment_map[table_comment[0]] = table_comment[1]
 
             vector_table = json.dumps(
                 {"table_name": table_comment[0], "table_description": table_comment[1]}
             )
+
             self.vector_tables_info.append(
                 vector_table.encode("utf-8").decode("unicode_escape")
             )
+
         self.table_columns_info = []
         self.table_columns_json = []
 
         for table_name in tables:
+            #
             table_summary = MysqlTableSummary(self.db, name, table_name, comment_map)
+
             # self.tables[table_name] = table_summary.get_summery()
+
             self.tables[table_name] = table_summary.get_columns()
             self.table_columns_info.append(table_summary.get_columns())
+
             # self.table_columns_json.append(table_summary.get_summary_json())
+
             table_profile = (
                 "table name:{table_name},table description:{table_comment}".format(
                     table_name=table_name,
                     table_comment=self.db.get_show_create_table(table_name),
                 )
             )
+
             self.table_columns_json.append(table_profile)
+
             # self.tables_info.append(table_summary.get_summery())
 
     def get_summery(self):
+
         if CFG.SUMMARY_CONFIG == "FAST":
+
             return self.vector_tables_info
+
         else:
+
             return self.summery.format(
                 name=self.name, type=self.type, table_info=";".join(self.tables_info)
             )
 
     def get_db_summery(self):
+
         return self.summery.format(
             name=self.name,
             type=self.type,
@@ -118,19 +142,25 @@ class MysqlSummary(DBSummary):
         )
 
     def get_table_summary(self):
+
         return self.tables
 
     def get_table_comments(self):
+
         return self.table_comments
 
     def table_info_json(self):
+
         return self.table_columns_json
 
 
 class MysqlTableSummary(TableSummary):
-    """Get mysql table summary template."""
+    """
+    Get mysql table summary template.
+    """
 
     def __init__(self, instance, dbname, name, comment_map):
+
         self.name = name
         self.dbname = dbname
         self.summery = """database name:{dbname}, table name:{name}, have columns info: {fields}, have indexes info: {indexes}"""
@@ -140,13 +170,20 @@ class MysqlTableSummary(TableSummary):
         self.indexes = []
         self.indexes_info = []
         self.db = instance
+
         fields = self.db.get_fields(name)
+
         indexes = self.db.get_indexes(name)
+
         field_names = []
+
         for field in fields:
+            #
             field_summary = MysqlFieldsSummary(field)
+
             self.fields.append(field_summary)
             self.fields_info.append(field_summary.get_summery())
+
             field_names.append(field[0])
 
         self.column_summery = """{name}({columns_info})""".format(
@@ -154,7 +191,9 @@ class MysqlTableSummary(TableSummary):
         )
 
         for index in indexes:
+            #
             index_summary = MysqlIndexSummary(index)
+
             self.indexes.append(index_summary)
             self.indexes_info.append(index_summary.get_summery())
 
@@ -168,6 +207,7 @@ class MysqlTableSummary(TableSummary):
         )
 
     def get_summery(self):
+
         return self.summery.format(
             name=self.name,
             dbname=self.dbname,
@@ -176,16 +216,21 @@ class MysqlTableSummary(TableSummary):
         )
 
     def get_columns(self):
+        #
         return self.column_summery
 
     def get_summary_json(self):
+        #
         return self.json_summery
 
 
 class MysqlFieldsSummary(FieldSummary):
-    """Get mysql field summary template."""
+    """
+    Get mysql field summary template.
+    """
 
     def __init__(self, field):
+        #
         self.name = field[0]
         # self.summery = """column name:{name}, column data type:{data_type}, is nullable:{is_nullable}, default value is:{default_value}, comment is:{comment} """
         # self.summery = """{"name": {name}, "type": {data_type}, "is_primary_key": {is_nullable}, "comment":{comment}, "default":{default_value}}"""
@@ -195,6 +240,7 @@ class MysqlFieldsSummary(FieldSummary):
         self.comment = field[4]
 
     def get_summery(self):
+        #
         return '{{"name": "{name}", "type": "{data_type}", "is_primary_key": "{is_nullable}", "comment": "{comment}", "default": "{default_value}"}}'.format(
             name=self.name,
             data_type=self.data_type,
@@ -205,20 +251,26 @@ class MysqlFieldsSummary(FieldSummary):
 
 
 class MysqlIndexSummary(IndexSummary):
-    """Get mysql index summary template."""
+    """
+    Get mysql index summary template.
+    """
 
     def __init__(self, index):
+        #
         self.name = index[0]
         # self.summery = """index name:{name}, index bind columns:{bind_fields}"""
         self.summery_template = '{{"name": "{name}", "columns": {bind_fields}}}'
         self.bind_fields = index[1]
 
     def get_summery(self):
+        #
         return self.summery_template.format(
             name=self.name, bind_fields=self.bind_fields
         )
 
 
 if __name__ == "__main__":
-    summary = MysqlSummary("db_test")
+    #
+    summary = MysqlSummary("adwetec_aihub_cars")
+
     print(summary.get_summery())

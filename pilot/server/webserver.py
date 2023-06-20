@@ -12,8 +12,8 @@ import uuid
 
 import gradio as gr
 
+ROOT_PATH = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # 项目更目录
 
-ROOT_PATH = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.append(ROOT_PATH)
 
 from pilot.summary.db_summary_client import DBSummaryClient
@@ -52,20 +52,31 @@ from pilot.language.translation_handler import get_lang_text
 
 # 加载插件
 CFG = Config()
+
 logger = build_logger("webserver", LOGDIR + "webserver.log")
+
 headers = {"User-Agent": "dbgpt Client"}
 
 no_change_btn = gr.Button.update()
+
 enable_btn = gr.Button.update(interactive=True)
+
 disable_btn = gr.Button.update(interactive=True)
 
 enable_moderation = False
+
 models = []
+
 dbs = []
+
 vs_list = [get_lang_text("create_knowledge_base")] + get_vector_storelist()
+
 autogpt = False
+
 vector_store_client = None
+
 vector_store_name = {"vs_name": ""}
+
 # db_summary = {"dbsummary": ""}
 
 priority = {"vicuna-13b": "aaa"}
@@ -80,9 +91,11 @@ DB_SETTINGS = {
 }
 
 llm_native_dialogue = get_lang_text("knowledge_qa_type_llm_native_dialogue")
+
 default_knowledge_base_dialogue = get_lang_text(
     "knowledge_qa_type_default_knowledge_base_dialogue"
 )
+
 add_knowledge_base_dialogue = get_lang_text(
     "knowledge_qa_type_add_knowledge_base_dialogue"
 )
@@ -97,26 +110,39 @@ knowledge_qa_type_list = [
 
 
 def get_simlar(q):
+    #
     docsearch = knownledge_tovec_st(os.path.join(DATASETS_DIR, "plan.md"))
+
     docs = docsearch.similarity_search_with_score(q, k=1)
 
     contents = [dc.page_content for dc, _ in docs]
+
     return "\n".join(contents)
 
 
 def gen_sqlgen_conversation(dbname):
+    #
     message = ""
+
     db_connect = CFG.local_db.get_session(dbname)
+
     schemas = CFG.local_db.table_simple_info(db_connect)
+
     for s in schemas:
+        #
         message += s + ";"
+
     return get_lang_text("sql_schema_info").format(dbname, message)
 
 
 def plugins_select_info():
+    #
     plugins_infos: dict = {}
+
     for plugin in CFG.plugins:
+        #
         plugins_infos.update({f"【{plugin._name}】=>{plugin._description}": plugin._name})
+
     return plugins_infos
 
 
@@ -135,16 +161,21 @@ function() {
 
 
 def load_demo(url_params, request: gr.Request):
+    #
     logger.info(f"load_demo. ip: {request.client.host}. params: {url_params}")
 
     # dbs = get_database_list()
+
     dropdown_update = gr.Dropdown.update(visible=True)
+
     if dbs:
+        #
         gr.Dropdown.update(choices=dbs)
 
     state = default_conversation.copy()
 
     unique_id = uuid.uuid1()
+
     state.conv_id = str(unique_id)
 
     return (
@@ -159,62 +190,97 @@ def load_demo(url_params, request: gr.Request):
 
 
 def get_conv_log_filename():
+    #
     t = datetime.datetime.now()
+
     name = os.path.join(LOGDIR, f"{t.year}-{t.month:02d}-{t.day:02d}-conv.json")
+
     return name
 
 
 def regenerate(state, request: gr.Request):
+    #
     logger.info(f"regenerate. ip: {request.client.host}")
+
     state.messages[-1][-1] = None
     state.skip_next = False
+
     return (state, state.to_gradio_chatbot(), "") + (disable_btn,) * 5
 
 
 def clear_history(request: gr.Request):
+    #
     logger.info(f"clear_history. ip: {request.client.host}")
+
     state = None
+
     return (state, [], "") + (disable_btn,) * 5
 
 
 def add_text(state, text, request: gr.Request):
     logger.info(f"add_text. ip: {request.client.host}. len: {len(text)}")
+
     if len(text) <= 0:
+        #
         state.skip_next = True
+
         return (state, state.to_gradio_chatbot(), "") + (no_change_btn,) * 5
 
     """ Default support 4000 tokens, if tokens too lang, we will cut off  """
     text = text[:4000]
+
     state.append_message(state.roles[0], text)
     state.append_message(state.roles[1], None)
+
     state.skip_next = False
+
     ### TODO
     state.last_user_input = text
+
     return (state, state.to_gradio_chatbot(), "") + (disable_btn,) * 5
 
 
 def post_process_code(code):
+    #
     sep = "\n```"
+
     if sep in code:
+
         blocks = code.split(sep)
+
         if len(blocks) % 2 == 1:
+
             for i in range(1, len(blocks), 2):
+                #
                 blocks[i] = blocks[i].replace("\\_", "_")
+
         code = sep.join(blocks)
+
     return code
 
 
 def get_chat_mode(selected, param=None) -> ChatScene:
+    #
     if chat_mode_title["chat_use_plugin"] == selected:
+
         return ChatScene.ChatExecution
+
     elif chat_mode_title["sql_generate_diagnostics"] == selected:
+
         sql_mode = param
+
         if sql_mode == conversation_sql_mode["auto_execute_ai_response"]:
+
             return ChatScene.ChatWithDbExecute
+
         else:
+
             return ChatScene.ChatWithDbQA
+
     else:
+
         mode = param
+
         if mode == conversation_types["default_knownledge"]:
             return ChatScene.ChatKnowledge
         elif mode == conversation_types["custome"]:
@@ -226,26 +292,31 @@ def get_chat_mode(selected, param=None) -> ChatScene:
 
 
 def chatbot_callback(state, message):
+    #
     print(f"chatbot_callback:{message}")
+
     state.messages[-1][-1] = f"{message}"
+
     yield (state, state.to_gradio_chatbot()) + (enable_btn,) * 5
 
 
 def http_bot(
-    state,
-    selected,
-    temperature,
-    max_new_tokens,
-    plugin_selector,
-    mode,
-    sql_mode,
-    db_selector,
-    url_input,
-    knowledge_name,
+        state,
+        selected,
+        temperature,
+        max_new_tokens,
+        plugin_selector,
+        mode,
+        sql_mode,
+        db_selector,
+        url_input,
+        knowledge_name,
 ):
+    #
     logger.info(
         f"User message send!{state.conv_id},{selected},{plugin_selector},{mode},{sql_mode},{db_selector},{url_input}"
     )
+
     if chat_mode_title["sql_generate_diagnostics"] == selected:
         scene: ChatScene = get_chat_mode(selected, sql_mode)
     elif chat_mode_title["chat_use_plugin"] == selected:
@@ -256,6 +327,7 @@ def http_bot(
     print(f"chat scene:{scene.value}")
 
     if ChatScene.ChatWithDbExecute == scene:
+        #
         chat_param = {
             "temperature": temperature,
             "max_new_tokens": max_new_tokens,
@@ -263,7 +335,9 @@ def http_bot(
             "db_name": db_selector,
             "user_input": state.last_user_input,
         }
+
     elif ChatScene.ChatWithDbQA == scene:
+        #
         chat_param = {
             "temperature": temperature,
             "max_new_tokens": max_new_tokens,
@@ -271,7 +345,9 @@ def http_bot(
             "db_name": db_selector,
             "user_input": state.last_user_input,
         }
+
     elif ChatScene.ChatExecution == scene:
+        #
         chat_param = {
             "temperature": temperature,
             "max_new_tokens": max_new_tokens,
@@ -279,21 +355,27 @@ def http_bot(
             "plugin_selector": plugin_selector,
             "user_input": state.last_user_input,
         }
+
     elif ChatScene.ChatNormal == scene:
+
         chat_param = {
             "temperature": temperature,
             "max_new_tokens": max_new_tokens,
             "chat_session_id": state.conv_id,
             "user_input": state.last_user_input,
         }
+
     elif ChatScene.ChatKnowledge == scene:
+
         chat_param = {
             "temperature": temperature,
             "max_new_tokens": max_new_tokens,
             "chat_session_id": state.conv_id,
             "user_input": state.last_user_input,
         }
+
     elif ChatScene.ChatNewKnowledge == scene:
+
         chat_param = {
             "temperature": temperature,
             "max_new_tokens": max_new_tokens,
@@ -301,7 +383,9 @@ def http_bot(
             "user_input": state.last_user_input,
             "knowledge_name": knowledge_name,
         }
+
     elif ChatScene.ChatUrlKnowledge == scene:
+
         chat_param = {
             "temperature": temperature,
             "max_new_tokens": max_new_tokens,
@@ -309,36 +393,55 @@ def http_bot(
             "user_input": state.last_user_input,
             "url": url_input,
         }
+
     else:
+
         state.messages[-1][-1] = f"ERROR: Can't support scene!{scene}"
+
         yield (state, state.to_gradio_chatbot()) + (enable_btn,) * 5
 
     chat: BaseChat = CHAT_FACTORY.get_implementation(scene.value, **chat_param)
+
     if not chat.prompt_template.stream_out:
+
         logger.info("not stream out, wait model response!")
+
         state.messages[-1][-1] = chat.nostream_call()
+
         yield (state, state.to_gradio_chatbot()) + (enable_btn,) * 5
+
     else:
+
         logger.info("stream out start!")
+
         try:
+
             response = chat.stream_call()
+
             for chunk in response.iter_lines(decode_unicode=False, delimiter=b"\0"):
+
                 if chunk:
+                    #
                     state.messages[-1][
                         -1
                     ] = chat.prompt_template.output_parser.parse_model_stream_resp_ex(
                         chunk, chat.skip_echo_len
                     )
+
                     yield (state, state.to_gradio_chatbot()) + (enable_btn,) * 5
+
         except Exception as e:
+
             print(traceback.format_exc())
+
             state.messages[-1][-1] = "Error:" + str(e)
+
             yield (state, state.to_gradio_chatbot()) + (enable_btn,) * 5
 
 
 block_css = (
-    code_highlight_css
-    + """
+        code_highlight_css
+        + """
         pre {
             white-space: pre-wrap;       /* Since CSS 2.1 */
             white-space: -moz-pre-wrap;  /* Mozilla, since 1999 */
@@ -354,6 +457,7 @@ block_css = (
 
 
 def change_sql_mode(sql_mode):
+    #
     if sql_mode in [get_lang_text("sql_generate_mode_direct")]:
         return gr.update(visible=True)
     else:
@@ -361,6 +465,7 @@ def change_sql_mode(sql_mode):
 
 
 def change_mode(mode):
+    #
     if mode in [add_knowledge_base_dialogue]:
         return gr.update(visible=True)
     else:
@@ -368,15 +473,19 @@ def change_mode(mode):
 
 
 def build_single_model_ui():
+    #
     notice_markdown = get_lang_text("db_gpt_introduction")
+
     learn_more_markdown = get_lang_text("learn_more_markdown")
 
     state = gr.State()
+
     gr.Markdown(notice_markdown, elem_id="notice_markdown")
 
     with gr.Accordion(
-        get_lang_text("model_control_param"), open=False, visible=False
+            get_lang_text("model_control_param"), open=False, visible=False
     ) as parameter_row:
+
         temperature = gr.Slider(
             minimum=0.0,
             maximum=1.0,
@@ -398,15 +507,21 @@ def build_single_model_ui():
     tabs = gr.Tabs()
 
     def on_select(evt: gr.SelectData):  # SelectData is a subclass of EventData
+
         print(f"You selected {evt.value} at {evt.index} from {evt.target}")
+
         return evt.value
 
     selected = gr.Textbox(show_label=False, visible=False, placeholder="Selected")
+
     tabs.select(on_select, None, selected)
 
     with tabs:
+
         tab_qa = gr.TabItem(get_lang_text("knowledge_qa"), elem_id="QA")
+
         with tab_qa:
+
             mode = gr.Radio(
                 [
                     llm_native_dialogue,
@@ -417,9 +532,11 @@ def build_single_model_ui():
                 show_label=False,
                 value=llm_native_dialogue,
             )
+
             vs_setting = gr.Accordion(
                 get_lang_text("configure_knowledge_base"), open=False, visible=False
             )
+
             mode.change(fn=change_mode, inputs=mode, outputs=vs_setting)
 
             url_input = gr.Textbox(
@@ -430,6 +547,7 @@ def build_single_model_ui():
             )
 
             def show_url_input(evt: gr.SelectData):
+
                 if evt.value == url_knowledge_dialogue:
                     return gr.update(visible=True)
                 else:
@@ -438,13 +556,19 @@ def build_single_model_ui():
             mode.select(fn=show_url_input, inputs=None, outputs=url_input)
 
             with vs_setting:
+
                 vs_name = gr.Textbox(
                     label=get_lang_text("new_klg_name"), lines=1, interactive=True
                 )
+
                 vs_add = gr.Button(get_lang_text("add_as_new_klg"))
+
                 with gr.Column() as doc2vec:
+                    #
                     gr.Markdown(get_lang_text("add_file_to_klg"))
+
                     with gr.Tab(get_lang_text("upload_file")):
+                        #
                         files = gr.File(
                             label=get_lang_text("add_file"),
                             file_types=[".txt", ".md", ".docx", ".pdf"],
@@ -456,21 +580,28 @@ def build_single_model_ui():
                         load_file_button = gr.Button(
                             get_lang_text("upload_and_load_to_klg")
                         )
+
                     with gr.Tab(get_lang_text("upload_folder")):
+                        #
                         folder_files = gr.File(
                             label=get_lang_text("add_folder"),
                             accept_multiple_files=True,
                             file_count="directory",
                             show_label=False,
                         )
+
                         load_folder_button = gr.Button(
                             get_lang_text("upload_and_load_to_klg")
                         )
 
         tab_sql = gr.TabItem(get_lang_text("sql_generate_diagnostics"), elem_id="SQL")
+
         with tab_sql:
+            #
             # TODO A selector to choose database
+            #
             with gr.Row(elem_id="db_selector"):
+                #
                 db_selector = gr.Dropdown(
                     label=get_lang_text("please_choose_database"),
                     choices=dbs,
@@ -489,15 +620,23 @@ def build_single_model_ui():
                 show_label=False,
                 value=get_lang_text("sql_generate_mode_none"),
             )
+
             sql_vs_setting = gr.Markdown(get_lang_text("sql_vs_setting"))
+
             sql_mode.change(fn=change_sql_mode, inputs=sql_mode, outputs=sql_vs_setting)
 
         tab_plugin = gr.TabItem(get_lang_text("chat_use_plugin"), elem_id="PLUGIN")
+        #
         # tab_plugin.select(change_func)
+        #
         with tab_plugin:
+
             print("tab_plugin in...")
+
             with gr.Row(elem_id="plugin_selector"):
+                #
                 # TODO
+                #
                 plugin_selector = gr.Dropdown(
                     label=get_lang_text("select_plugin"),
                     choices=list(plugins_select_info().keys()),
@@ -508,31 +647,43 @@ def build_single_model_ui():
                 ).style(container=False)
 
                 def plugin_change(
-                    evt: gr.SelectData,
-                ):  # SelectData is a subclass of EventData
+                        evt: gr.SelectData,
+                ):  #
+                    # SelectData is a subclass of EventData
+                    #
                     print(f"You selected {evt.value} at {evt.index} from {evt.target}")
                     print(f"user plugin:{plugins_select_info().get(evt.value)}")
+
                     return plugins_select_info().get(evt.value)
 
                 plugin_selected = gr.Textbox(
                     show_label=False, visible=False, placeholder="Selected"
                 )
+
                 plugin_selector.select(plugin_change, None, plugin_selected)
 
     with gr.Blocks():
+
         chatbot = grChatbot(elem_id="chatbot", visible=False).style(height=550)
+
         with gr.Row():
+            #
             with gr.Column(scale=20):
+                #
                 textbox = gr.Textbox(
                     show_label=False,
                     placeholder="Enter text and press ENTER",
                     visible=False,
                 ).style(container=False)
+
             with gr.Column(scale=2, min_width=50):
+                #
                 send_btn = gr.Button(value=get_lang_text("send"), visible=False)
 
     with gr.Row(visible=False) as button_row:
+
         regenerate_btn = gr.Button(value=get_lang_text("regenerate"), interactive=False)
+
         clear_btn = gr.Button(value=get_lang_text("clear_box"), interactive=False)
 
     gr.Markdown(learn_more_markdown)
@@ -540,11 +691,13 @@ def build_single_model_ui():
     params = [plugin_selected, mode, sql_mode, db_selector, url_input, vs_name]
 
     btn_list = [regenerate_btn, clear_btn]
+
     regenerate_btn.click(regenerate, state, [state, chatbot, textbox] + btn_list).then(
         http_bot,
         [state, selected, temperature, max_output_tokens] + params,
         [state, chatbot] + btn_list,
     )
+
     clear_btn.click(clear_history, None, [state, chatbot, textbox] + btn_list)
 
     textbox.submit(
@@ -562,32 +715,39 @@ def build_single_model_ui():
         [state, selected, temperature, max_output_tokens] + params,
         [state, chatbot] + btn_list,
     )
+
     vs_add.click(
         fn=save_vs_name, show_progress=True, inputs=[vs_name], outputs=[vs_name]
     )
+
     load_file_button.click(
         fn=knowledge_embedding_store,
         show_progress=True,
         inputs=[vs_name, files],
         outputs=[vs_name],
     )
+
     load_folder_button.click(
         fn=knowledge_embedding_store,
         show_progress=True,
         inputs=[vs_name, folder_files],
         outputs=[vs_name],
     )
+
     return state, chatbot, textbox, send_btn, button_row, parameter_row
 
 
 def build_webdemo():
+    #
     with gr.Blocks(
-        title=get_lang_text("database_smart_assistant"),
-        # theme=gr.themes.Base(),
-        theme=gr.themes.Default(),
-        css=block_css,
+            title=get_lang_text("database_smart_assistant"),
+            # theme=gr.themes.Base(),
+            theme=gr.themes.Default(),
+            css=block_css,
     ) as demo:
+
         url_params = gr.JSON(visible=False)
+
         (
             state,
             chatbot,
@@ -598,6 +758,7 @@ def build_webdemo():
         ) = build_single_model_ui()
 
         if args.model_list_mode == "once":
+
             demo.load(
                 load_demo,
                 [url_params],
@@ -611,25 +772,37 @@ def build_webdemo():
                 ],
                 _js=get_window_url_params,
             )
+
         else:
+
             raise ValueError(f"Unknown model list mode: {args.model_list_mode}")
+
     return demo
 
 
 def save_vs_name(vs_name):
+    #
     vector_store_name["vs_name"] = vs_name
+
     return vs_name
 
 
 def knowledge_embedding_store(vs_id, files):
+    #
     # vs_path = os.path.join(VS_ROOT_PATH, vs_id)
+    #
     if not os.path.exists(os.path.join(KNOWLEDGE_UPLOAD_ROOT_PATH, vs_id)):
+        #
         os.makedirs(os.path.join(KNOWLEDGE_UPLOAD_ROOT_PATH, vs_id))
+
     for file in files:
+        #
         filename = os.path.split(file.name)[-1]
+
         shutil.move(
             file.name, os.path.join(KNOWLEDGE_UPLOAD_ROOT_PATH, vs_id, filename)
         )
+
         knowledge_embedding_client = KnowledgeEmbedding(
             file_path=os.path.join(KNOWLEDGE_UPLOAD_ROOT_PATH, vs_id, filename),
             model_name=LLM_MODEL_CONFIG["text2vec"],
@@ -638,25 +811,34 @@ def knowledge_embedding_store(vs_id, files):
                 "vector_store_path": KNOWLEDGE_UPLOAD_ROOT_PATH,
             },
         )
+
         knowledge_embedding_client.knowledge_embedding()
 
     logger.info("knowledge embedding success")
+
     return vs_id
 
 
 def async_db_summery():
+    #
     client = DBSummaryClient()
+
     thread = threading.Thread(target=client.init_db_summary)
+
     thread.start()
 
 
 def signal_handler(sig, frame):
+    #
     print("in order to avoid chroma db atexit problem")
+
     os._exit(0)
 
 
 if __name__ == "__main__":
+
     parser = argparse.ArgumentParser()
+
     parser.add_argument("--host", type=str, default="0.0.0.0")
     parser.add_argument("--port", type=int, default=CFG.WEB_SERVER_PORT)
     parser.add_argument("--concurrency-count", type=int, default=10)
@@ -666,15 +848,20 @@ if __name__ == "__main__":
     parser.add_argument("--share", default=False, action="store_true")
 
     args = parser.parse_args()
+
     logger.info(f"args: {args}")
 
     # init config
     cfg = Config()
 
     load_native_plugins(cfg)
-    dbs = cfg.local_db.get_database_list()
+
+    dbs = cfg.local_db.get_database_list()  # 返回数据库服务中的所有数据库名称
+
     signal.signal(signal.SIGINT, signal_handler)
+
     async_db_summery()
+
     cfg.set_plugins(scan_plugins(cfg, cfg.debug_mode))
 
     # Loader plugins and commands
@@ -682,18 +869,24 @@ if __name__ == "__main__":
         "pilot.commands.built_in.audio_text",
         "pilot.commands.built_in.image_gen",
     ]
+
     # exclude commands
     command_categories = [
         x for x in command_categories if x not in cfg.disabled_command_categories
     ]
+
     command_registry = CommandRegistry()
+
     for command_category in command_categories:
+        #
         command_registry.import_commands(command_category)
 
     cfg.command_registry = command_registry
 
     logger.info(args)
+
     demo = build_webdemo()
+
     demo.queue(
         concurrency_count=args.concurrency_count, status_update_rate=10, api_open=False
     ).launch(
