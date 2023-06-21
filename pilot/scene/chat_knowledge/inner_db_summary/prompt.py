@@ -11,7 +11,6 @@ from pilot.scene.chat_knowledge.inner_db_summary.out_parser import (
     NormalChatOutputParser,
 )
 
-
 CFG = Config()
 
 PROMPT_SCENE_DEFINE = """"""
@@ -29,9 +28,7 @@ PROMPT_RESPONSE = """You must respond in JSON format as following format:
 The response format must be JSON, and the key of JSON must be "table".
 """
 
-
 RESPONSE_FORMAT = {"table": ["orders", "products"]}
-
 
 PROMPT_SEP = SeparatorStyle.SINGLE.value
 
@@ -48,6 +45,5 @@ prompt = PromptTemplate(
         sep=PROMPT_SEP, is_stream_out=PROMPT_NEED_NEED_STREAM_OUT
     ),
 )
-
 
 CFG.prompt_templates.update({prompt.template_scene: prompt})

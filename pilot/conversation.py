@@ -31,7 +31,9 @@ class SeparatorStyle(Enum):
 
 @dataclasses.dataclass
 class Conversation:
-    """This class keeps all conversation history."""
+    """
+    This class keeps all conversation history.
+    """
 
     system: str
     roles: List[str]
@@ -69,11 +71,15 @@ class Conversation:
             raise ValueError(f"Invalid style: {self.sep_style}")
 
     def append_message(self, role, message):
+        #
         self.messages.append([role, message])
 
     def to_gradio_chatbot(self):
+
         ret = []
-        for i, (role, msg) in enumerate(self.messages[self.offset :]):
+
+        for i, (role, msg) in enumerate(self.messages[self.offset:]):
+
             if i % 2 == 0:
                 ret.append([msg, None])
             else:
@@ -182,7 +188,7 @@ conv_one_shot = Conversation(
 
 conv_vicuna_v1 = Conversation(
     system="A chat between a curious user and an artificial intelligence assistant. who very familiar with database related knowledge. "
-    "The assistant gives helpful, detailed, professional and polite answers to the user's questions. ",
+           "The assistant gives helpful, detailed, professional and polite answers to the user's questions. ",
     roles=("USER", "ASSISTANT"),
     messages=(),
     offset=0,
@@ -193,7 +199,7 @@ conv_vicuna_v1 = Conversation(
 
 auto_dbgpt_one_shot = Conversation(
     system="You are DB-GPT, an AI designed to answer questions about HackerNews by query `hackerbews` database in MySQL. "
-    "Your decisions must always be made independently without seeking user assistance. Play to your strengths as an LLM and pursue simple strategies with no legal complications.",
+           "Your decisions must always be made independently without seeking user assistance. Play to your strengths as an LLM and pursue simple strategies with no legal complications.",
     roles=("USER", "ASSISTANT"),
     messages=(
         (
@@ -266,7 +272,7 @@ auto_dbgpt_one_shot = Conversation(
 
 auto_dbgpt_without_shot = Conversation(
     system="You are DB-GPT, an AI designed to answer questions about users by query `users` database in MySQL. "
-    "Your decisions must always be made independently without seeking user assistance. Play to your strengths as an LLM and pursue simple strategies with no legal complications.",
+           "Your decisions must always be made independently without seeking user assistance. Play to your strengths as an LLM and pursue simple strategies with no legal complications.",
     roles=("USER", "ASSISTANT"),
     messages=(),
     offset=0,
@@ -293,16 +299,16 @@ conv_qa_prompt_template = """ 基于以下已知的信息, 专业、简要的回
 # """
 default_conversation = conv_default
 
-
-chat_mode_title = {
+##################################################################################
+chat_mode_title = {  # 模式
     "sql_generate_diagnostics": get_lang_text("sql_generate_diagnostics"),
     "chat_use_plugin": get_lang_text("chat_use_plugin"),
     "knowledge_qa": get_lang_text("knowledge_qa"),
 }
 
 conversation_sql_mode = {
-    "auto_execute_ai_response": get_lang_text("sql_generate_mode_direct"),
-    "dont_execute_ai_response": get_lang_text("sql_generate_mode_none"),
+    "auto_execute_ai_response": get_lang_text("sql_generate_mode_direct"),  # 直接执行结果
+    "dont_execute_ai_response": get_lang_text("sql_generate_mode_none"),  # DB问答
 }
 
 conversation_types = {

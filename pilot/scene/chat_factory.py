@@ -1,7 +1,9 @@
 from pilot.scene.base_chat import BaseChat
 from pilot.singleton import Singleton
+
 import inspect
 import importlib
+
 from pilot.scene.chat_execution.chat import ChatWithPlugin
 from pilot.scene.chat_normal.chat import ChatNormal
 from pilot.scene.chat_db.professional_qa.chat import ChatWithDbQA
@@ -14,12 +16,20 @@ from pilot.scene.chat_knowledge.inner_db_summary.chat import InnerChatDBSummary
 
 class ChatFactory(metaclass=Singleton):
     @staticmethod
-    def get_implementation(chat_mode, **kwargs):
-        chat_classes = BaseChat.__subclasses__()
+    def get_implementation(chat_mode, **kwargs):  # 根据场景和对应参数生成聊天实现
+
+        chat_classes = BaseChat.__subclasses__() # 获取所有的子类
+
         implementation = None
+
         for cls in chat_classes:
+
             if cls.chat_scene == chat_mode:
+                #
                 implementation = cls(**kwargs)
+
         if implementation == None:
+            #
             raise Exception(f"Invalid implementation name:{chat_mode}")
+
         return implementation

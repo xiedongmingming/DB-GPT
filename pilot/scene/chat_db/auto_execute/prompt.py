@@ -1,5 +1,6 @@
 import json
 import importlib
+
 from pilot.prompts.prompt_new import PromptTemplate
 from pilot.configs.config import Config
 from pilot.scene.base import ChatScene
@@ -9,7 +10,6 @@ from pilot.common.schema import SeparatorStyle
 CFG = Config()
 
 PROMPT_SCENE_DEFINE = """You are an AI designed to answer human questions, please follow the prompts and conventions of the system's input for your answers"""
-
 
 _DEFAULT_TEMPLATE = """
 You are a SQL expert. Given an input question, first create a syntactically correct {dialect} query to run, then look at the results of the query and return the answer.
@@ -61,4 +61,5 @@ prompt = PromptTemplate(
         sep=PROMPT_SEP, is_stream_out=PROMPT_NEED_NEED_STREAM_OUT
     ),
 )
+
 CFG.prompt_templates.update({prompt.template_scene: prompt})

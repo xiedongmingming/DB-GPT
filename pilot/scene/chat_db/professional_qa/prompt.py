@@ -1,5 +1,6 @@
 import json
 import importlib
+
 from pilot.prompts.prompt_new import PromptTemplate
 from pilot.configs.config import Config
 from pilot.scene.base import ChatScene
@@ -47,7 +48,6 @@ _DEFAULT_TEMPLATE_ZH = """
 _DEFAULT_TEMPLATE = (
     _DEFAULT_TEMPLATE_EN if CFG.LANGUAGE == "en" else _DEFAULT_TEMPLATE_ZH
 )
-
 
 PROMPT_SEP = SeparatorStyle.SINGLE.value
 

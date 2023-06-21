@@ -221,7 +221,7 @@ def clear_history(request: gr.Request):
     return (state, [], "") + (disable_btn,) * 5
 
 
-def add_text(state, text, request: gr.Request):
+def add_text(state, text, request: gr.Request):  #
     #
     logger.info(f"add_text. ip: {request.client.host}. len: {len(text)}")
 
@@ -274,11 +274,11 @@ def get_chat_mode(selected, param=None) -> ChatScene:
 
         sql_mode = param
 
-        if sql_mode == conversation_sql_mode["auto_execute_ai_response"]:
+        if sql_mode == conversation_sql_mode["auto_execute_ai_response"]:  # 直接执行结果
 
             return ChatScene.ChatWithDbExecute
 
-        else:
+        else:  # DB问答
 
             return ChatScene.ChatWithDbQA
 
@@ -305,9 +305,9 @@ def chatbot_callback(state, message):
     yield (state, state.to_gradio_chatbot()) + (enable_btn,) * 5
 
 
-def http_bot(
+def http_bot(  # 真正的业务处理地方
         state,
-        selected,
+        selected,  # 选择的模式（3种）
         temperature,
         max_new_tokens,
         plugin_selector,
@@ -322,14 +322,14 @@ def http_bot(
         f"User message send!{state.conv_id}, {selected}, {plugin_selector}, {mode}, {sql_mode}, {db_selector}, {url_input}"
     )
 
-    if chat_mode_title["sql_generate_diagnostics"] == selected:
+    if chat_mode_title["sql_generate_diagnostics"] == selected:  # 模式：SQL生成与诊断
         scene: ChatScene = get_chat_mode(selected, sql_mode)
-    elif chat_mode_title["chat_use_plugin"] == selected:
+    elif chat_mode_title["chat_use_plugin"] == selected:  # 模式：插件模式
         scene: ChatScene = get_chat_mode(selected)
-    else:
+    else:  # 模式：知识问答
         scene: ChatScene = get_chat_mode(selected, mode)
 
-    print(f"chat scene:{scene.value}")
+    print(f"chat scene: {scene.value}")
 
     if ChatScene.ChatWithDbExecute == scene:
         #

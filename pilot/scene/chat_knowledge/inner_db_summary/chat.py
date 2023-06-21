@@ -13,13 +13,13 @@ class InnerChatDBSummary(BaseChat):
     """Number of results to return from the query"""
 
     def __init__(
-        self,
-        temperature,
-        max_new_tokens,
-        chat_session_id,
-        user_input,
-        db_select,
-        db_summary,
+            self,
+            temperature,
+            max_new_tokens,
+            chat_session_id,
+            user_input,
+            db_select,
+            db_summary,
     ):
         """ """
         super().__init__(

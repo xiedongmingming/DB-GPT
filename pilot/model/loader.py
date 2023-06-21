@@ -55,7 +55,7 @@ class ModelLoader(metaclass=Singleton):
     def __init__(self, model_path) -> None:
         #
         self.device = DEVICE
-        self.model_path = model_path # 绝对路径
+        self.model_path = model_path  # 绝对路径
         self.kwargs = {
             "torch_dtype": torch.float16,
             "device_map": "auto",
@@ -126,7 +126,9 @@ class ModelLoader(metaclass=Singleton):
 
             else:
 
-                compress_module(model, self.device)
+                pass
+
+                # compress_module(model, self.device)
 
         if (
                 (self.device == "cuda" and num_gpus == 1 and not cpu_offloading)

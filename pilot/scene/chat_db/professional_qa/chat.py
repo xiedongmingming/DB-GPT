@@ -15,12 +15,13 @@ CFG = Config()
 
 
 class ChatWithDbQA(BaseChat):
+    #
     chat_scene: str = ChatScene.ChatWithDbQA.value
 
     """Number of results to return from the query"""
 
     def __init__(
-        self, temperature, max_new_tokens, chat_session_id, db_name, user_input
+            self, temperature, max_new_tokens, chat_session_id, db_name, user_input
     ):
         """ """
         super().__init__(
@@ -30,11 +31,14 @@ class ChatWithDbQA(BaseChat):
             chat_session_id=chat_session_id,
             current_user_input=user_input,
         )
+
         self.db_name = db_name
+
         if db_name:
             self.database = CFG.local_db
             # 准备DB信息(拿到指定库的链接)
             self.db_connect = self.database.get_session(self.db_name)
+
             self.tables = self.database.get_table_names()
 
         self.top_k = (
@@ -44,18 +48,26 @@ class ChatWithDbQA(BaseChat):
         )
 
     def generate_input_values(self):
+
         table_info = ""
+
         dialect = "mysql"
+
         try:
             from pilot.summary.db_summary_client import DBSummaryClient
         except ImportError:
             raise ValueError("Could not import DBSummaryClient. ")
+
         if self.db_name:
+            #
             client = DBSummaryClient()
+
             table_info = client.get_db_summary(
                 dbname=self.db_name, query=self.current_user_input, topk=self.top_k
             )
+
             # table_info = self.database.table_simple_info(self.db_connect)
+
             dialect = self.database.dialect
 
         input_values = {
@@ -64,7 +76,9 @@ class ChatWithDbQA(BaseChat):
             # "dialect": dialect,
             "table_info": table_info,
         }
+
         return input_values
 
     def do_with_prompt_response(self, prompt_response):
+        #
         return prompt_response
