@@ -27,7 +27,9 @@ def read_audio_from_file(filename: str) -> str:
         str: The text from the audio
     """
     with open(filename, "rb") as audio_file:
+        #
         audio = audio_file.read()
+
     return read_audio(audio)
 
 
@@ -42,11 +44,15 @@ def read_audio(audio: bytes) -> str:
         str: The text from the audio
     """
     model = CFG.huggingface_audio_to_text_model
+
     api_url = f"https://api-inference.huggingface.co/models/{model}"
+
     api_token = CFG.huggingface_api_token
+
     headers = {"Authorization": f"Bearer {api_token}"}
 
     if api_token is None:
+        #
         raise ValueError(
             "You need to set your Hugging Face API token in the config file."
         )
@@ -58,4 +64,5 @@ def read_audio(audio: bytes) -> str:
     )
 
     text = json.loads(response.content.decode("utf-8"))["text"]
+
     return f"The audio says: {text}"

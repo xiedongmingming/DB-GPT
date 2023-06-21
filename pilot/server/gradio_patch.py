@@ -23,17 +23,17 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
     """
 
     def __init__(
-        self,
-        value: List[Tuple[str | None, str | None]] | Callable | None = None,
-        color_map: Dict[str, str] | None = None,  # Parameter moved to Chatbot.style()
-        *,
-        label: str | None = None,
-        every: float | None = None,
-        show_label: bool = True,
-        visible: bool = True,
-        elem_id: str | None = None,
-        elem_classes: List[str] | str | None = None,
-        **kwargs,
+            self,
+            value: List[Tuple[str | None, str | None]] | Callable | None = None,
+            color_map: Dict[str, str] | None = None,  # Parameter moved to Chatbot.style()
+            *,
+            label: str | None = None,
+            every: float | None = None,
+            show_label: bool = True,
+            visible: bool = True,
+            elem_id: str | None = None,
+            elem_classes: List[str] | str | None = None,
+            **kwargs,
     ):
         """
         Parameters:
@@ -79,10 +79,10 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
 
     @staticmethod
     def update(
-        value: Any | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
-        label: str | None = None,
-        show_label: bool | None = None,
-        visible: bool | None = None,
+            value: Any | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
+            label: str | None = None,
+            show_label: bool | None = None,
+            visible: bool | None = None,
     ):
         updated_config = {
             "label": label,
@@ -94,7 +94,7 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
         return updated_config
 
     def _process_chat_messages(
-        self, chat_message: str | Tuple | List | Dict | None
+            self, chat_message: str | Tuple | List | Dict | None
     ) -> str | Dict | None:
         if chat_message is None:
             return None
@@ -108,7 +108,7 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
                 "is_file": True,
             }
         elif isinstance(
-            chat_message, dict
+                chat_message, dict
         ):  # This happens for previously processed messages
             return chat_message
         elif isinstance(chat_message, str):
@@ -118,10 +118,10 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
             raise ValueError(f"Invalid message for Chatbot component: {chat_message}")
 
     def postprocess(
-        self,
-        y: List[
-            Tuple[str | Tuple | List | Dict | None, str | Tuple | List | Dict | None]
-        ],
+            self,
+            y: List[
+                Tuple[str | Tuple | List | Dict | None, str | Tuple | List | Dict | None]
+            ],
     ) -> List[Tuple[str | Dict | None, str | Dict | None]]:
         """
         Parameters:
@@ -137,7 +137,7 @@ class Chatbot(Changeable, Selectable, IOComponent, JSONSerializable):
                 message_pair, (tuple, list)
             ), f"Expected a list of lists or list of tuples. Received: {message_pair}"
             assert (
-                len(message_pair) == 2
+                    len(message_pair) == 2
             ), f"Expected a list of lists of length 2 or list of tuples of length 2. Received: {message_pair}"
             processed_messages.append(
                 (

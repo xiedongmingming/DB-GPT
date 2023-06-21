@@ -86,11 +86,16 @@ def load_native_plugins(cfg: Config):  # 自动加载本地插件
 
         print("async load_native_plugins")
 
-        branch_name = cfg.plugins_git_branch
+        branch_name = cfg.plugins_git_branch  # plugin_dashboard
 
         native_plugin_repo = "DB-GPT-Plugins"
 
         url = "https://github.com/csunny/{repo}/archive/{branch}.zip"
+
+        # https://github.com/csunny/DB-GPT-Plugins/archive/plugin_dashboard.zip
+        # https://wetec-material.cdn.bcebos.com/private/xieming/DB-GPT-Plugins-plugin_dashboard.zip
+
+        return cfg.set_plugins(scan_plugins(cfg, cfg.debug_mode))  # 加载插件
 
         try:
 
@@ -127,7 +132,7 @@ def load_native_plugins(cfg: Config):  # 自动加载本地插件
 
                 print("save file")
 
-                cfg.set_plugins(scan_plugins(cfg, cfg.debug_mode))
+                cfg.set_plugins(scan_plugins(cfg, cfg.debug_mode))  # 加载插件
 
             else:
 
@@ -137,9 +142,11 @@ def load_native_plugins(cfg: Config):  # 自动加载本地插件
 
             print("load plugin from git exception!" + str(e))
 
-    t = threading.Thread(target=load_from_git, args=(cfg,))
+    # t = threading.Thread(target=load_from_git, args=(cfg,))
+    #
+    # t.start()
 
-    t.start()
+    load_from_git(cfg)
 
 
 def scan_plugins(cfg: Config, debug: bool = False) -> List[AutoGPTPluginTemplate]:
@@ -155,7 +162,7 @@ def scan_plugins(cfg: Config, debug: bool = False) -> List[AutoGPTPluginTemplate
     """
     loaded_plugins = []
 
-    current_dir = os.getcwd()
+    current_dir = os.getcwd()  # pilot
 
     print(current_dir)
 
@@ -168,7 +175,10 @@ def scan_plugins(cfg: Config, debug: bool = False) -> List[AutoGPTPluginTemplate
     for plugin in plugins_path_path.glob("*.zip"):
 
         if moduleList := inspect_zip_for_modules(str(plugin), debug):
-
+            # [
+            #       'DB-GPT-Plugins-plugin_dashboard/src/dbgpt_plugins/db_dashboard/__init__.py',
+            #       'DB-GPT-Plugins-plugin_dashboard/src/dbgpt_plugins/generic_db/__init__.py'
+            # ]
             for module in moduleList:
 
                 plugin = Path(plugin)
@@ -195,19 +205,23 @@ def scan_plugins(cfg: Config, debug: bool = False) -> List[AutoGPTPluginTemplate
                             and a_module.__name__ != "AutoGPTPluginTemplate"
                             # and denylist_allowlist_check(a_module.__name__, cfg)
                     ):
+                        #
                         loaded_plugins.append(a_module())
 
     if loaded_plugins:
+        #
         logger.info(f"\nPlugins found: {len(loaded_plugins)}\n" "--------------------")
 
     for plugin in loaded_plugins:
+        #
         logger.info(f"{plugin._name}: {plugin._version} - {plugin._description}")
 
     return loaded_plugins
 
 
 def denylist_allowlist_check(plugin_name: str, cfg: Config) -> bool:
-    """Check if the plugin is in the allowlist or denylist.
+    """
+    Check if the plugin is in the allowlist or denylist.
 
     Args:
         plugin_name (str): Name of the plugin.

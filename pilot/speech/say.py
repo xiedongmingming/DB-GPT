@@ -15,25 +15,36 @@ _QUEUE_SEMAPHORE = Semaphore(
 
 
 def say_text(text: str, voice_index: int = 0) -> None:
-    """Speak the given text using the given voice index"""
+    """
+    Speak the given text using the given voice index
+    """
     cfg = Config()
+
     default_voice_engine, voice_engine = _get_voice_engine(cfg)
 
     def speak() -> None:
+        #
         success = voice_engine.say(text, voice_index)
+
         if not success:
+            #
             default_voice_engine.say(text)
 
         _QUEUE_SEMAPHORE.release()
 
     _QUEUE_SEMAPHORE.acquire(True)
+
     thread = threading.Thread(target=speak)
+
     thread.start()
 
 
 def _get_voice_engine(config: Config) -> tuple[VoiceBase, VoiceBase]:
-    """Get the voice engine to use for the given configuration"""
+    """
+    Get the voice engine to use for the given configuration
+    """
     default_voice_engine = GTTSVoice()
+
     if config.elevenlabs_api_key:
         voice_engine = ElevenLabsSpeech()
     elif config.use_mac_os_tts == "True":

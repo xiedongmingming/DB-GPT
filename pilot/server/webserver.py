@@ -872,10 +872,10 @@ if __name__ == "__main__":
 
     async_db_summery()
 
-    cfg.set_plugins(scan_plugins(cfg, cfg.debug_mode))
+    cfg.set_plugins(scan_plugins(cfg, cfg.debug_mode)) # 上面已经有了
 
     # Loader plugins and commands
-    command_categories = [
+    command_categories = [ # 内置插件
         "pilot.commands.built_in.audio_text",
         "pilot.commands.built_in.image_gen",
     ]

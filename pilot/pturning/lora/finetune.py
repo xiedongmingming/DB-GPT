@@ -20,6 +20,7 @@ from pilot.configs.config import Config
 from pilot.configs.model_config import DATA_DIR, LLM_MODEL_CONFIG
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
+
 CUTOFF_LEN = 50
 
 df = pd.read_csv(os.path.join(DATA_DIR, "BTC_Tweets_Updated.csv"))
@@ -28,10 +29,12 @@ CFG = Config()
 
 
 def sentiment_score_to_name(score: float):
+    #
     if score > 0:
         return "Positive"
     elif score < 0:
         return "Negative"
+
     return "Neutral"
 
 
@@ -45,15 +48,17 @@ dataset_data = [
 ]
 
 with open(os.path.join(DATA_DIR, "alpaca-bitcoin-sentiment-dataset.json"), "w") as f:
+    #
     json.dump(dataset_data, f)
-
 
 data = load_dataset(
     "json", data_files=os.path.join(DATA_DIR, "alpaca-bitcoin-sentiment-dataset.json")
 )
+
 print(data["train"])
 
 BASE_MODEL = LLM_MODEL_CONFIG[CFG.LLM_MODEL]
+
 model = LlamaForCausalLM.from_pretrained(
     BASE_MODEL,
     torch_dtype=torch.float16,
@@ -62,11 +67,13 @@ model = LlamaForCausalLM.from_pretrained(
 )
 
 tokenizer = LlamaTokenizer.from_pretrained(BASE_MODEL)
+
 tokenizer.pad_token_id = 0
 tokenizer.padding_side = "left"
 
 
 def generate_prompt(data_point):
+    #
     return f"""Blow is an instruction that describes a task, paired with an input that provide future context.
     Write a response that appropriately completes the request. #noqa:
 
@@ -89,20 +96,24 @@ def tokenize(prompt, add_eos_token=True):
     )
 
     if (
-        result["input_ids"][-1] != tokenizer.eos_token_id
-        and len(result["input_ids"]) < CUTOFF_LEN
-        and add_eos_token
+            result["input_ids"][-1] != tokenizer.eos_token_id
+            and len(result["input_ids"]) < CUTOFF_LEN
+            and add_eos_token
     ):
         result["input_ids"].append(tokenizer.eos_token_id)
         result["attention_mask"].append(1)
 
     result["labels"] = result["input_ids"].copy()
+
     return result
 
 
 def generate_and_tokenize_prompt(data_point):
+    #
     full_prompt = generate_prompt(data_point)
+
     tokenized_full_prompt = tokenize(full_prompt)
+
     return tokenized_full_prompt
 
 

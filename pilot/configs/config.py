@@ -96,7 +96,7 @@ class Config(metaclass=Singleton):
         ### The associated configuration parameters of the plug-in control the loading and use of the plug-in
         self.plugins: List[AutoGPTPluginTemplate] = []
         self.plugins_openai = []
-        self.plugins_auto_load = False  # os.getenv("AUTO_LOAD_PLUGIN", "True") == "True"
+        self.plugins_auto_load = os.getenv("AUTO_LOAD_PLUGIN", "True") == "True"
 
         self.plugins_git_branch = os.getenv("PLUGINS_GIT_BRANCH", "plugin_dashboard")
 
@@ -174,21 +174,31 @@ class Config(metaclass=Singleton):
         self.SUMMARY_CONFIG = os.getenv("SUMMARY_CONFIG", "FAST")
 
     def set_debug_mode(self, value: bool) -> None:
-        """Set the debug mode value"""
+        """
+        Set the debug mode value
+        """
         self.debug_mode = value
 
     def set_plugins(self, value: list) -> None:
-        """Set the plugins value."""
+        """
+        Set the plugins value.
+        """
         self.plugins = value
 
     def set_templature(self, value: int) -> None:
-        """Set the temperature value."""
+        """
+        Set the temperature value.
+        """
         self.temperature = value
 
     def set_speak_mode(self, value: bool) -> None:
-        """Set the speak mode value."""
+        """
+        Set the speak mode value.
+        """
         self.speak_mode = value
 
     def set_last_plugin_return(self, value: bool) -> None:
-        """Set the speak mode value."""
+        """
+        Set the speak mode value.
+        """
         self.last_plugin_return = value

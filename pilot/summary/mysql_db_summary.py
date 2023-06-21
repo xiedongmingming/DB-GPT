@@ -50,18 +50,18 @@ class MysqlSummary(DBSummary):
     Get mysql summary template.
     """
 
-    def __init__(self, name):
+    def __init__(self, name):  # 数据库汇总
 
-        self.name = name
+        self.name = name  # 数据库名称
         self.type = "MYSQL"
-        self.summery = """{{"database_name": "{name}", "type": "{type}", "tables": "{tables}", "qps": "{qps}", "tps": {tps}}}"""
+        self.summery = """{{"database_name": "{name}", "type": "{type}", "tables": "{tables}", "qps": "{qps}", "tps": {tps}}}"""  # 汇总结果模板
         self.tables = {}
         self.tables_info = []
         self.vector_tables_info = []
         # self.tables_summary = {}
 
         self.db = CFG.local_db
-        self.db.get_session(name)
+        self.db.get_session(name)  # 获取详细信息
 
         self.metadata = """user info :{users}, grant info:{grant}, charset:{charset}, collation:{collation}""".format(
             users=self.db.get_users(),
@@ -154,7 +154,7 @@ class MysqlSummary(DBSummary):
         return self.table_columns_json
 
 
-class MysqlTableSummary(TableSummary):
+class MysqlTableSummary(TableSummary):  # 针对表的汇总
     """
     Get mysql table summary template.
     """

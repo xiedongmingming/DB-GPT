@@ -1,5 +1,6 @@
 """Base class for all voice classes."""
 import abc
+
 from threading import Lock
 
 from pilot.singleton import AbstractSingleton
@@ -30,6 +31,7 @@ class VoiceBase(AbstractSingleton):
             voice_index (int): The index of the voice to use.
         """
         with self._mutex:
+            #
             return self._speech(text, voice_index)
 
     @abc.abstractmethod

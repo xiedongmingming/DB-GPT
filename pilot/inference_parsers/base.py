@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+
 from pydantic import BaseModel, Extra, Field, root_validator
 
 

@@ -1,9 +1,11 @@
 """ Image Generation Module for AutoGPT."""
 import io
 import uuid
+
 from base64 import b64decode
 
 import requests
+
 from PIL import Image
 
 from pilot.commands.command_mange import command
@@ -15,7 +17,8 @@ CFG = Config()
 
 @command("generate_image", "Generate Image", '"prompt": "<prompt>"', CFG.image_provider)
 def generate_image(prompt: str, size: int = 256) -> str:
-    """Generate an image from a prompt.
+    """
+    Generate an image from a prompt.
 
     Args:
         prompt (str): The prompt to use
@@ -26,17 +29,17 @@ def generate_image(prompt: str, size: int = 256) -> str:
     """
     filename = f"{CFG.workspace_path}/{str(uuid.uuid4())}.jpg"
 
-    # HuggingFace
-    if CFG.image_provider == "huggingface":
+    if CFG.image_provider == "huggingface":  # HuggingFace
         return generate_image_with_hf(prompt, filename)
-    # SD WebUI
-    elif CFG.image_provider == "sdwebui":
+    elif CFG.image_provider == "sdwebui":  # SD WebUI
         return generate_image_with_sd_webui(prompt, filename, size)
+
     return "No Image Provider Set"
 
 
 def generate_image_with_hf(prompt: str, filename: str) -> str:
-    """Generate an image with HuggingFace's API.
+    """
+    Generate an image with HuggingFace's API.
 
     Args:
         prompt (str): The prompt to use
@@ -48,10 +51,13 @@ def generate_image_with_hf(prompt: str, filename: str) -> str:
     API_URL = (
         f"https://api-inference.huggingface.co/models/{CFG.huggingface_image_model}"
     )
+
     if CFG.huggingface_api_token is None:
+        #
         raise ValueError(
             "You need to set your Hugging Face API token in the config file."
         )
+
     headers = {
         "Authorization": f"Bearer {CFG.huggingface_api_token}",
         "X-Use-Cache": "false",
@@ -66,6 +72,7 @@ def generate_image_with_hf(prompt: str, filename: str) -> str:
     )
 
     image = Image.open(io.BytesIO(response.content))
+
     logger.info(f"Image Generated for prompt:{prompt}")
 
     image.save(filename)
@@ -74,13 +81,14 @@ def generate_image_with_hf(prompt: str, filename: str) -> str:
 
 
 def generate_image_with_sd_webui(
-    prompt: str,
-    filename: str,
-    size: int = 512,
-    negative_prompt: str = "",
-    extra: dict = {},
+        prompt: str,
+        filename: str,
+        size: int = 512,
+        negative_prompt: str = "",
+        extra: dict = {},
 ) -> str:
-    """Generate an image with Stable Diffusion webui.
+    """
+    Generate an image with Stable Diffusion webui.
     Args:
         prompt (str): The prompt to use
         filename (str): The filename to save the image to
@@ -92,8 +100,11 @@ def generate_image_with_sd_webui(
     """
     # Create a session and set the basic auth if needed
     s = requests.Session()
+
     if CFG.sd_webui_auth:
+        #
         username, password = CFG.sd_webui_auth.split(":")
+
         s.auth = (username, password or "")
 
     # Generate the images
@@ -116,8 +127,11 @@ def generate_image_with_sd_webui(
 
     # Save the image to disk
     response = response.json()
+
     b64 = b64decode(response["images"][0].split(",", 1)[0])
+
     image = Image.open(io.BytesIO(b64))
+
     image.save(filename)
 
     return f"Saved to disk:{filename}"

@@ -26,18 +26,19 @@ class SourceEmbedding(ABC):
     def __init__(
             self,
             file_path,
-            vector_store_config,
+            vector_store_config,  # 向量存储配置信息
             embedding_args: Optional[Dict] = None,
     ):
         """
         Initialize with Loader url, model_name, vector_store_config
         """
-        self.file_path = file_path
+        self.file_path = file_path  # 待处理的数据
         self.vector_store_config = vector_store_config
         self.embedding_args = embedding_args
         self.embeddings = vector_store_config["embeddings"]
         self.vector_client = VectorStoreConnector(
-            CFG.VECTOR_STORE_TYPE, vector_store_config
+            CFG.VECTOR_STORE_TYPE,
+            vector_store_config
         )
 
     @abstractmethod

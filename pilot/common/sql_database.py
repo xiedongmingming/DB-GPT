@@ -131,20 +131,18 @@ class Database:
 
         sql = text(f"use `{db_name}`")
 
-        session.execute(sql)
+        session.execute(sql)  # 使用对应的数据库
 
         # 处理表信息数据
 
-        self._metadata.reflect(bind=self._engine, schema=db_name)
+        self._metadata.reflect(bind=self._engine, schema=db_name)  # 获取到元数据
 
         # including view support by adding the views as well as tables to the all tables list if view_support is True
 
         self._all_tables = set(
             self._inspector.get_table_names(schema=db_name)
             + (
-                self._inspector.get_view_names(schema=db_name)
-                if self.view_support
-                else []
+                self._inspector.get_view_names(schema=db_name) if self.view_support else []  # 视图
             )
         )
 
@@ -426,11 +424,13 @@ class Database:
 
         results = cursor.fetchall()
 
-        return [
-            d[0]
-            for d in results
-            if d[0] not in ["information_schema", "performance_schema", "sys", "mysql"]
-        ]
+        # return [
+        #     d[0]
+        #     for d in results
+        #     if d[0] not in ["information_schema", "performance_schema", "sys", "mysql"]
+        # ]
+
+        return ['adwetec_aihub_cars']
 
     def convert_sql_write_to_select(self, write_sql):
         """
@@ -621,7 +621,12 @@ class Database:
         )
 
         table_comments = cursor.fetchall()
-
+        # [
+        #     ('adwetec_aihub_car_configuration_basic', '新能源汽车基本信息表'),
+        #     ('adwetec_aihub_car_configuration_body', '新能源汽车车身相关信息表'),
+        #     ('adwetec_aihub_car_configuration_gearbox', ''),
+        #     ('adwetec_aihub_car_configuration_motor', '新能源汽车动力信息表')
+        # ]
         return [
             (table_comment[0], table_comment[1]) for table_comment in table_comments
         ]

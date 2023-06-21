@@ -8,7 +8,8 @@ AUTO_GPT_COMMAND_IDENTIFIER = "auto_gpt_command"
 
 
 class Command:
-    """A class representing a command.
+    """
+    A class representing a command.
 
     Attributes:
         name (str): The name of the command.
@@ -17,14 +18,15 @@ class Command:
     """
 
     def __init__(
-        self,
-        name: str,
-        description: str,
-        method: Callable[..., Any],
-        signature: str = "",
-        enabled: bool = True,
-        disabled_reason: Optional[str] = None,
+            self,
+            name: str,
+            description: str,
+            method: Callable[..., Any],
+            signature: str = "",
+            enabled: bool = True,
+            disabled_reason: Optional[str] = None,
     ):
+        #
         self.name = name
         self.description = description
         self.method = method
@@ -33,11 +35,15 @@ class Command:
         self.disabled_reason = disabled_reason
 
     def __call__(self, *args, **kwargs) -> Any:
+        #
         if not self.enabled:
+            #
             return f"Command '{self.name}' is disabled: {self.disabled_reason}"
+
         return self.method(*args, **kwargs)
 
     def __str__(self) -> str:
+        #
         return f"{self.name}: {self.description}, args: {self.signature}"
 
 
@@ -50,39 +56,56 @@ class CommandRegistry:
     """
 
     def __init__(self):
+        #
         self.commands = {}
 
     def _import_module(self, module_name: str) -> Any:
+        #
         return importlib.import_module(module_name)
 
     def _reload_module(self, module: Any) -> Any:
+        #
         return importlib.reload(module)
 
     def register(self, cmd: Command) -> None:
+        #
         self.commands[cmd.name] = cmd
 
     def unregister(self, command_name: str):
+        #
         if command_name in self.commands:
             del self.commands[command_name]
         else:
             raise KeyError(f"Command '{command_name}' not found in registry.")
 
     def reload_commands(self) -> None:
-        """Reloads all loaded command plugins."""
+        """
+        Reloads all loaded command plugins.
+        """
         for cmd_name in self.commands:
+
             cmd = self.commands[cmd_name]
+
             module = self._import_module(cmd.__module__)
+
             reloaded_module = self._reload_module(module)
+
             if hasattr(reloaded_module, "register"):
+                #
                 reloaded_module.register(self)
 
     def get_command(self, name: str) -> Callable[..., Any]:
+
         return self.commands[name]
 
     def call(self, command_name: str, **kwargs) -> Any:
+
         if command_name not in self.commands:
+            #
             raise KeyError(f"Command '{command_name}' not found in registry.")
+
         command = self.commands[command_name]
+
         return command(**kwargs)
 
     def command_prompt(self) -> str:
@@ -94,7 +117,7 @@ class CommandRegistry:
         ]
         return "\n".join(commands_list)
 
-    def import_commands(self, module_name: str) -> None:
+    def import_commands(self, module_name: str) -> None:  # 通过模块名称导入对应的对象
         """
         Imports the specified Python module containing command plugins.
 
@@ -110,30 +133,37 @@ class CommandRegistry:
         module = importlib.import_module(module_name)
 
         for attr_name in dir(module):
+
             attr = getattr(module, attr_name)
-            # Register decorated functions
-            if hasattr(attr, AUTO_GPT_COMMAND_IDENTIFIER) and getattr(
-                attr, AUTO_GPT_COMMAND_IDENTIFIER
+
+            if hasattr(attr, AUTO_GPT_COMMAND_IDENTIFIER) and getattr(  # Register decorated functions
+                    attr, AUTO_GPT_COMMAND_IDENTIFIER
             ):
+
                 self.register(attr.command)
-            # Register command classes
+
             elif (
-                inspect.isclass(attr) and issubclass(attr, Command) and attr != Command
+                    inspect.isclass(attr) and issubclass(attr, Command) and attr != Command  # Register command classes
             ):
+
                 cmd_instance = attr()
+
                 self.register(cmd_instance)
 
 
 def command(
-    name: str,
-    description: str,
-    signature: str = "",
-    enabled: bool = True,
-    disabled_reason: Optional[str] = None,
+        name: str,
+        description: str,
+        signature: str = "",
+        enabled: bool = True,
+        disabled_reason: Optional[str] = None,
 ) -> Callable[..., Any]:
-    """The command decorator is used to create Command objects from ordinary functions."""
+    """
+    The command decorator is used to create Command objects from ordinary functions.
+    """
 
     def decorator(func: Callable[..., Any]) -> Command:
+        #
         cmd = Command(
             name=name,
             description=description,
@@ -145,6 +175,7 @@ def command(
 
         @functools.wraps(func)
         def wrapper(*args, **kwargs) -> Any:
+            #
             return func(*args, **kwargs)
 
         wrapper.command = cmd

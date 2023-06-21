@@ -18,15 +18,15 @@ chat_factory = ChatFactory()
 
 
 class DBSummaryClient:
-    """db summary client, provide db_summary_embedding(put db profile and table profile summary into vector store)
-    , get_similar_tables method(get user query related tables info)
+    """
+    db summary client, provide db_summary_embedding(put db profile and table profile summary into vector store), get_similar_tables method(get user query related tables info)
     """
 
     def __init__(self):
         #
         pass
 
-    def db_summary_embedding(self, dbname):
+    def db_summary_embedding(self, dbname): # 数据库汇总
         """
         put db profile and table profile summary into vector store
         """

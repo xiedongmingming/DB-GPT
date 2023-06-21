@@ -7,30 +7,46 @@ from pilot.vector_store.vector_store_base import VectorStoreBase
 
 
 class ChromaStore(VectorStoreBase):
-    """chroma database"""
+    """
+    chroma database
+    """
 
     def __init__(self, ctx: {}) -> None:
+        #
         self.ctx = ctx
-        self.embeddings = ctx["embeddings"]
+
+        self.embeddings = ctx["embeddings"]  # 词嵌入
+
         self.persist_dir = os.path.join(
-            KNOWLEDGE_UPLOAD_ROOT_PATH, ctx["vector_store_name"] + ".vectordb"
+            KNOWLEDGE_UPLOAD_ROOT_PATH,
+            ctx["vector_store_name"] + ".vectordb"
         )
+
         self.vector_store_client = Chroma(
-            persist_directory=self.persist_dir, embedding_function=self.embeddings
+            persist_directory=self.persist_dir,
+            embedding_function=self.embeddings
         )
 
     def similar_search(self, text, topk) -> None:
+        #
         logger.info("ChromaStore similar search")
+
         return self.vector_store_client.similarity_search(text, topk)
 
-    def vector_name_exists(self):
+    def vector_name_exists(self):  # 判断存储路径是否存在
+        #
         return (
-            os.path.exists(self.persist_dir) and len(os.listdir(self.persist_dir)) > 0
+                os.path.exists(self.persist_dir) and len(os.listdir(self.persist_dir)) > 0
         )
 
     def load_document(self, documents):
+        #
         logger.info("ChromaStore load document")
+
         texts = [doc.page_content for doc in documents]
+
         metadatas = [doc.metadata for doc in documents]
+
         self.vector_store_client.add_texts(texts=texts, metadatas=metadatas)
+
         self.vector_store_client.persist()
